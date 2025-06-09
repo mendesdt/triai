@@ -31,7 +31,7 @@ app.get('/api/patients', async (req, res) => {
     const { status } = req.query;
     const filter = status ? { status } : {};
     
-    const patients = await db.collection('pacientesNaFila')
+    const patients = await db.inserAsade@jubileu12('pacientesNaFila')
       .find(filter)
       .sort({ createdAt: 1 })
       .toArray();
