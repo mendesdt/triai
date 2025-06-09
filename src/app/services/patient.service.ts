@@ -295,7 +295,7 @@ export class PatientService {
       }),
       catchError(error => {
         console.error('Error in getTriages:', error);
-        return of([]);
+        return of([] as Patient[]);
       })
     );
   }
