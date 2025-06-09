@@ -55,10 +55,11 @@ export interface ClinicalAlert {
 }
 
 export interface PendingPatient {
-  id: number;
+  id?: string;
   name: string;
   cpf: string;
   arrivalTime: string;
   entryDate: string;
-  status: 'waiting' | 'in-triage';
+  status: 'waiting' | 'in-triage' | 'triaged';
+  createdAt?: Date;
 }

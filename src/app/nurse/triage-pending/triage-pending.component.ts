@@ -29,11 +29,11 @@ export class TriagePendingComponent implements OnInit {
 
   loadPendingPatients(): void {
     this.loading = true;
-    this.receptionService.getPendingPatients()
+    // Get only patients that are waiting (not in triage or already triaged)
+    this.receptionService.getPatientsByStatus('waiting')
       .subscribe({
         next: (data) => {
-          // Only show patients that are waiting (not in triage)
-          this.pendingPatients = data.filter(p => p.status === 'waiting');
+          this.pendingPatients = data;
           this.applyFilters();
           this.loading = false;
         },
@@ -64,7 +64,7 @@ export class TriagePendingComponent implements OnInit {
 
   startTriage(patient: PendingPatient): void {
     // Update patient status to in-triage
-    this.receptionService.updatePatientStatus(patient.id, 'in-triage')
+    this.receptionService.updatePatientStatus(patient.id!, 'in-triage')
       .subscribe({
         next: () => {
           // Navigate to triage form with patient data
@@ -79,6 +79,7 @@ export class TriagePendingComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating patient status:', error);
+          alert('Erro ao iniciar triagem');
         }
       });
   }

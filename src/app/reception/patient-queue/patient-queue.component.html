@@ -30,7 +30,7 @@
       <div class="queue-stats">
         <span class="stat-item">
           <span class="material-icons">schedule</span>
-          {{ filteredPatients.length }} pacientes aguardando
+          {{ filteredPatients.length }} pacientes na fila
         </span>
       </div>
     </div>
@@ -67,10 +67,10 @@
               </td>
               <td>
                 <div class="action-buttons">
-                  <button class="btn-edit" (click)="editPatient(patient)">
+                  <button class="btn-edit" (click)="editPatient(patient)" *ngIf="patient.status !== 'triaged'">
                     <span class="material-icons">edit</span>
                   </button>
-                  <button class="btn-remove" (click)="removePatient(patient.id)">
+                  <button class="btn-remove" (click)="removePatient(patient.id!)">
                     <span class="material-icons">remove_circle</span>
                   </button>
                 </div>

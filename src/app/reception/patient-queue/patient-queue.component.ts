@@ -83,7 +83,7 @@ export class PatientQueueComponent implements OnInit {
     this.showAddPatientModal = true;
   }
 
-  removePatient(id: number): void {
+  removePatient(id: string): void {
     if (confirm('Tem certeza que deseja remover este paciente da fila?')) {
       this.receptionService.removePendingPatient(id)
         .subscribe({
@@ -92,6 +92,7 @@ export class PatientQueueComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error removing patient:', error);
+            alert('Erro ao remover paciente da fila');
           }
         });
     }
@@ -112,7 +113,7 @@ export class PatientQueueComponent implements OnInit {
     };
     
     const operation = this.editingPatient 
-      ? this.receptionService.updatePendingPatient(this.editingPatient.id, patientData)
+      ? this.receptionService.updatePendingPatient(this.editingPatient.id!, patientData)
       : this.receptionService.addPendingPatient(patientData);
     
     operation.subscribe({
@@ -124,6 +125,7 @@ export class PatientQueueComponent implements OnInit {
       error: (error) => {
         console.error('Error saving patient:', error);
         this.loading = false;
+        alert('Erro ao salvar paciente');
       }
     });
   }
@@ -145,6 +147,8 @@ export class PatientQueueComponent implements OnInit {
         return 'status-waiting';
       case 'in-triage':
         return 'status-in-triage';
+      case 'triaged':
+        return 'status-triaged';
       default:
         return 'status-waiting';
     }
@@ -156,6 +160,8 @@ export class PatientQueueComponent implements OnInit {
         return 'Aguardando';
       case 'in-triage':
         return 'Em Triagem';
+      case 'triaged':
+        return 'Triado';
       default:
         return 'Aguardando';
     }

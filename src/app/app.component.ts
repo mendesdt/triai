@@ -55,11 +55,21 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Listen to both route changes and authentication state
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      // Don't show sidebar on login page
-      this.showSidebar = !event.url.includes('/login');
+      this.updateSidebarVisibility(event.url);
     });
+
+    // Listen to authentication state changes
+    this.authService.currentUser$.subscribe(user => {
+      this.updateSidebarVisibility(this.router.url);
+    });
+  }
+
+  private updateSidebarVisibility(url: string): void {
+    // Show sidebar only if user is authenticated and not on login page
+    this.showSidebar = this.authService.isAuthenticated() && !url.includes('/login');
   }
 }

@@ -19,7 +19,7 @@ export class TriageFormComponent implements OnInit {
   success = false;
   isEditMode = false;
   triageId: number | null = null;
-  pendingPatientId: number | null = null;
+  pendingPatientId: string | null = null;
   public noAllergiesChecked = false;
   
   symptoms = [
@@ -90,7 +90,7 @@ export class TriageFormComponent implements OnInit {
     // Check for pending patient data
     this.route.queryParams.subscribe(params => {
       if (params['pendingId']) {
-        this.pendingPatientId = +params['pendingId'];
+        this.pendingPatientId = params['pendingId'];
         this.triageForm.patchValue({
           name: params['name'] || '',
           cpf: params['cpf'] || ''
@@ -210,15 +210,15 @@ export class TriageFormComponent implements OnInit {
     
     operation.subscribe({
       next: () => {
-        // If this was from a pending patient, remove from pending list
+        // If this was from a pending patient, update status to triaged
         if (this.pendingPatientId) {
-          this.receptionService.removePendingPatient(this.pendingPatientId)
+          this.receptionService.updatePatientStatus(this.pendingPatientId, 'triaged')
             .subscribe({
               next: () => {
                 this.completeTriageProcess();
               },
               error: (error) => {
-                console.error('Error removing pending patient:', error);
+                console.error('Error updating patient status:', error);
                 this.completeTriageProcess();
               }
             });
@@ -229,6 +229,7 @@ export class TriageFormComponent implements OnInit {
       error: (error) => {
         console.error('Error saving triage:', error);
         this.loading = false;
+        alert('Erro ao salvar triagem');
       }
     });
   }

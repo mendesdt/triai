@@ -185,6 +185,11 @@
   color: var(--primary);
 }
 
+.status-triaged {
+  background-color: #E8F5E9;
+  color: var(--success);
+}
+
 .action-buttons {
   display: flex;
   gap: 8px;
