@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, from } from 'rxjs';
 import { delay, map, catchError } from 'rxjs/operators';
 import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert } from '../models/patient.model';
-import { SupabaseService } from './supabase.service';
+import { SupabaseService, SupabaseTriageRaw } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -272,7 +272,7 @@ export class PatientService {
           throw error;
         }
         
-        return (data || []).map(triage => ({
+        return (data || []).map((triage: SupabaseTriageRaw) => ({
           id: parseInt(triage.id.substring(0, 8), 16), // Convert UUID to number for compatibility
           name: triage.name,
           cpf: triage.cpf,

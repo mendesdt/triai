@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { PendingPatient } from '../models/patient.model';
-import { SupabaseService } from './supabase.service';
+import { SupabaseService, SupabasePendingPatientRaw } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +19,8 @@ export class ReceptionService {
           throw error;
         }
         
-        return (data || []).map(patient => ({
-          id: patient.id,
+        return (data || []).map((patient: SupabasePendingPatientRaw) => ({
+          id: parseInt(patient.id.substring(0, 8), 16), // Convert UUID to number for compatibility
           name: patient.name,
           cpf: patient.cpf,
           arrivalTime: patient.arrival_time,
@@ -49,7 +49,7 @@ export class ReceptionService {
 
         const patient = data[0];
         return {
-          id: patient.id,
+          id: parseInt(patient.id.substring(0, 8), 16), // Convert UUID to number for compatibility
           name: patient.name,
           cpf: patient.cpf,
           arrivalTime: patient.arrival_time,
@@ -82,7 +82,7 @@ export class ReceptionService {
 
         const patient = data[0];
         return {
-          id: patient.id,
+          id: parseInt(patient.id.substring(0, 8), 16), // Convert UUID to number for compatibility
           name: patient.name,
           cpf: patient.cpf,
           arrivalTime: patient.arrival_time,

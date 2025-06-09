@@ -15,6 +15,38 @@ export interface DatabaseUser {
   updated_at: string;
 }
 
+export interface SupabaseTriageRaw {
+  id: string;
+  patient_queue_id?: string;
+  name: string;
+  cpf: string;
+  birth_date?: string;
+  mother_name?: string;
+  consult_reason: string;
+  symptoms?: string[];
+  other_symptoms?: string;
+  duration: string;
+  intensity: string;
+  medications?: string;
+  allergies?: string;
+  priority: string;
+  vital_signs?: any;
+  nurse_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupabasePendingPatientRaw {
+  id: string;
+  name: string;
+  cpf: string;
+  arrival_time: string;
+  entry_date: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
