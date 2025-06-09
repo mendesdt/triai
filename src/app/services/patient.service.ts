@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, map, catchError, of } from 'rxjs';
+import { Observable, from, map, catchError, of, switchMap } from 'rxjs';
 import { 
   collection, 
   addDoc, 
@@ -26,7 +26,7 @@ export class PatientService {
   private patientHistories: { [key: number]: PatientHistory[] } = {
     1: [
       {
-        id: 1,
+        id: '1',
         date: '15/11/2024 - 14:20',
         type: 'Consulta Clínica Geral',
         diagnosis: 'Síndrome gripal',
@@ -170,7 +170,7 @@ export class PatientService {
   // Completar atendimento (mover para triagens concluídas)
   completeAttendance(patientId: string): Observable<boolean> {
     return from(getDoc(doc(db, this.triagesCollection, patientId))).pipe(
-      map(async (docSnap) => {
+      switchMap(async (docSnap) => {
         if (docSnap.exists()) {
           const patientData = docSnap.data();
           
