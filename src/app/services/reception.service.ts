@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PendingPatient } from '../models/patient.model';
-import { FirebaseService } from './firebase.service';
+import { MongoDBService } from './mongodb.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReceptionService {
-  constructor(private firebaseService: FirebaseService) {}
+  constructor(private mongoDBService: MongoDBService) {}
 
   getPendingPatients(): Observable<PendingPatient[]> {
-    return from(this.firebaseService.getPatientsInQueue());
+    return this.mongoDBService.getPatientsInQueue();
   }
 
-  addPendingPatient(patientData: Omit<PendingPatient, 'id'>): Observable<string> {
+  addPendingPatient(patientData: Omit<PendingPatient, 'id'>): Observable<any> {
     const newPatient: Omit<PendingPatient, 'id'> = {
       name: patientData.name,
       cpf: patientData.cpf,
@@ -22,22 +22,22 @@ export class ReceptionService {
       status: 'waiting'
     };
     
-    return from(this.firebaseService.addPatientToQueue(newPatient));
+    return this.mongoDBService.addPatientToQueue(newPatient);
   }
 
-  updatePendingPatient(id: string, patientData: Partial<PendingPatient>): Observable<void> {
-    return from(this.firebaseService.updatePatient(id, patientData));
+  updatePendingPatient(id: string, patientData: Partial<PendingPatient>): Observable<any> {
+    return this.mongoDBService.updatePatient(id, patientData);
   }
 
-  removePendingPatient(id: string): Observable<void> {
-    return from(this.firebaseService.removePatientFromQueue(id));
+  removePendingPatient(id: string): Observable<any> {
+    return this.mongoDBService.removePatientFromQueue(id);
   }
 
-  updatePatientStatus(id: string, status: 'waiting' | 'in-triage' | 'triaged'): Observable<void> {
-    return from(this.firebaseService.updatePatientStatus(id, status));
+  updatePatientStatus(id: string, status: 'waiting' | 'in-triage' | 'triaged'): Observable<any> {
+    return this.mongoDBService.updatePatientStatus(id, status);
   }
 
   getPatientsByStatus(status: 'waiting' | 'in-triage' | 'triaged'): Observable<PendingPatient[]> {
-    return from(this.firebaseService.getPatientsByStatus(status));
+    return this.mongoDBService.getPatientsByStatus(status);
   }
 }
