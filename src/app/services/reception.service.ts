@@ -3,6 +3,11 @@ import { Observable } from 'rxjs';
 import { PendingPatient } from '../models/patient.model';
 import { MongoDBService } from './mongodb.service';
 
+export interface NewPatientInput {
+  name: string;
+  cpf: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,7 +18,7 @@ export class ReceptionService {
     return this.mongoDBService.getPatientsInQueue();
   }
 
-  addPendingPatient(patientData: Omit<PendingPatient, 'id'>): Observable<any> {
+  addPendingPatient(patientData: NewPatientInput): Observable<any> {
     const newPatient: Omit<PendingPatient, 'id'> = {
       name: patientData.name,
       cpf: patientData.cpf,
