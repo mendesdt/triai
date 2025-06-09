@@ -254,3 +254,29 @@ table th {
 .priority-low {
   color: var(--success);
 }
+
+/* Demo credentials styling */
+.demo-credentials {
+  background-color: #f8f9fa;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.demo-credentials h4 {
+  color: var(--primary);
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.credential-item {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.credential-item strong {
+  color: var(--text-primary);
+}

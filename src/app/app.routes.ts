@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './auth/login/login.component';
+import { FirebaseLoginComponent } from './auth/login/firebase-login.component';
 import { TriagePendingComponent } from './nurse/triage-pending/triage-pending.component';
 import { TriageListComponent } from './nurse/triage-list/triage-list.component';
 import { TriageFormComponent } from './nurse/triage-form/triage-form.component';
@@ -9,37 +9,37 @@ import { PatientHistoryComponent } from './patient/patient-history/patient-histo
 import { PatientAnalysisComponent } from './patient/patient-analysis/patient-analysis.component';
 import { CompletedPatientsComponent } from './doctor/completed-patients/completed-patients.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
-import { PatientQueueComponent } from './reception/patient-queue/patient-queue.component';
-import { AuthGuard } from './auth/auth.guard';
-import { RoleGuard } from './auth/role.guard';
+import { FirebasePatientQueueComponent } from './reception/patient-queue/firebase-patient-queue.component';
+import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
+import { FirebaseRoleGuard } from './auth/firebase-role.guard';
 
 export const appRoutes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: FirebaseLoginComponent },
   
   // Nurse routes
   { 
     path: 'triage-pending', 
     component: TriagePendingComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['enfermeiro'] }
   },
   { 
     path: 'triage-completed', 
     component: TriageListComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['enfermeiro'] }
   },
   { 
     path: 'triage/new', 
     component: TriageFormComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['enfermeiro'] }
   },
   { 
     path: 'triage/edit/:id', 
     component: TriageFormComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['enfermeiro'] }
   },
   
@@ -47,19 +47,19 @@ export const appRoutes: Routes = [
   { 
     path: 'patients', 
     component: PatientListComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['medico'] }
   },
   { 
     path: 'completed-patients', 
     component: CompletedPatientsComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['medico'] }
   },
   { 
     path: 'patient/:id', 
     component: PatientSummaryComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['medico'] }
   },
   
@@ -67,27 +67,27 @@ export const appRoutes: Routes = [
   { 
     path: 'patient/:id/history', 
     component: PatientHistoryComponent, 
-    canActivate: [AuthGuard]
+    canActivate: [FirebaseAuthGuard]
   },
   { 
     path: 'patient/:id/analysis', 
     component: PatientAnalysisComponent, 
-    canActivate: [AuthGuard]
+    canActivate: [FirebaseAuthGuard]
   },
   
   // Admin routes
   { 
     path: 'admin/dashboard', 
     component: AdminDashboardComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['admin'] }
   },
   
-  // Reception routes
+  // Reception routes - Updated to use Firebase component
   { 
     path: 'reception/queue', 
-    component: PatientQueueComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    component: FirebasePatientQueueComponent, 
+    canActivate: [FirebaseAuthGuard, FirebaseRoleGuard],
     data: { roles: ['recepcao'] }
   },
   
