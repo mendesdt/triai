@@ -1,5 +1,5 @@
 export interface Patient {
-  id?: string;
+  id: string;
   name: string;
   photo?: string;
   cpf: string;
@@ -37,7 +37,7 @@ export interface VitalSigns {
 }
 
 export interface PatientHistory {
-  id: number;
+  id: string;
   date: string;
   type: string;
   diagnosis: string;
