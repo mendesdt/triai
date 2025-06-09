@@ -1,21 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { FirebaseAuthService } from './services/firebase-auth.service';
-import { FirebaseHeaderComponent } from './shared/header/firebase-header.component';
-import { FirebaseSidebarComponent } from './shared/sidebar/firebase-sidebar.component';
+import { AuthService } from './auth/auth.service';
+import { HeaderComponent } from './shared/header/header.component';
+import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, FirebaseHeaderComponent, FirebaseSidebarComponent],
+  imports: [CommonModule, RouterModule, HeaderComponent, SidebarComponent],
   template: `
     <div class="app-container" [class.with-sidebar]="showSidebar">
-      <app-firebase-sidebar *ngIf="showSidebar"></app-firebase-sidebar>
+      <app-sidebar *ngIf="showSidebar"></app-sidebar>
       <div class="content-area">
-        <app-firebase-header *ngIf="showSidebar"></app-firebase-header>
+        <app-header *ngIf="showSidebar"></app-header>
         <main>
           <router-outlet></router-outlet>
         </main>
@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: FirebaseAuthService
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {

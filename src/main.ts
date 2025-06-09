@@ -6,8 +6,8 @@ import { importProvidersFrom } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FirebaseAuthGuard } from './app/auth/firebase-auth.guard';
-import { FirebaseRoleGuard } from './app/auth/firebase-role.guard';
+import { AuthGuard } from './app/auth/auth.guard';
+import { RoleGuard } from './app/auth/role.guard';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -18,7 +18,7 @@ bootstrapApplication(AppComponent, {
       FormsModule,
       ReactiveFormsModule
     ),
-    FirebaseAuthGuard,
-    FirebaseRoleGuard
+    AuthGuard,
+    RoleGuard
   ]
 }).catch(err => console.error(err));
