@@ -4,6 +4,7 @@ export interface Patient {
   photo?: string;
   cpf: string;
   birthDate: string;
+  motherName?: string;
   arrivalTime: string;
   completedTime?: string;
   priority: 'Alta' | 'Média' | 'Baixa' | 'Não triado';
@@ -19,7 +20,6 @@ export interface Patient {
   phone?: string;
   lastAppointment?: string;
   diagnosis?: string;
-  motherName?: string;
   allergies?: string;
   vitalSigns?: VitalSigns;
   triageStatus?: 'pending' | 'in-progress' | 'completed';
@@ -44,6 +44,18 @@ export interface PatientHistory {
   medications: string;
   evolution: string;
   status: 'Finalizado' | 'Acompanhamento' | 'Evolução';
+  consultReason?: string;
+  symptoms?: string[];
+  otherSymptoms?: string;
+  duration?: string;
+  intensity?: string;
+  priority?: string;
+  allergies?: string;
+  vitalSigns?: VitalSigns;
+  motherName?: string;
+  professionalName?: string;
+  professionalRole?: string;
+  observations?: string;
 }
 
 export interface ClinicalHypothesis {
@@ -61,6 +73,7 @@ export interface PendingPatient {
   name: string;
   cpf: string;
   birthDate?: string;
+  motherName?: string;
   arrivalTime: string;
   entryDate: string;
   status: 'waiting' | 'in-triage';

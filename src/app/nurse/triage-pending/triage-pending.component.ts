@@ -63,24 +63,17 @@ export class TriagePendingComponent implements OnInit {
   }
 
   startTriage(patient: PendingPatient): void {
-    // Update patient status to in-triage
-    this.receptionService.updatePatientStatus(patient.id, 'in-triage')
-      .subscribe({
-        next: () => {
-          // Navigate to triage form with patient data
-          this.router.navigate(['/triage/new'], { 
-            queryParams: { 
-              pendingId: patient.id,
-              name: patient.name,
-              cpf: patient.cpf,
-              arrivalTime: patient.arrivalTime
-            }
-          });
-        },
-        error: (error) => {
-          console.error('Error updating patient status:', error);
-        }
-      });
+    // NÃO atualizar o status aqui - apenas navegar para o formulário
+    // O paciente só sairá da lista quando a triagem for realmente registrada
+    this.router.navigate(['/triage/new'], { 
+      queryParams: { 
+        pendingId: patient.id,
+        name: patient.name,
+        cpf: patient.cpf,
+        birthDate: patient.birthDate,
+        motherName: patient.motherName || '' // Incluir nome da mãe
+      }
+    });
   }
 
   refreshList(): void {

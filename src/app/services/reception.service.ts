@@ -38,6 +38,7 @@ export class ReceptionService {
             name: data['name'],
             cpf: data['cpf'],
             birthDate: data['birthDate'],
+            motherName: data['motherName'],
             arrivalTime: data['arrivalTime'],
             entryDate: data['entryDate'],
             status: data['status'] || 'waiting'
@@ -58,6 +59,7 @@ export class ReceptionService {
       name: patientData.name || '',
       cpf: patientData.cpf || '',
       birthDate: patientData.birthDate || '',
+      motherName: patientData.motherName || '',
       arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       entryDate: now.toISOString().split('T')[0],
       status: 'waiting',
@@ -70,6 +72,7 @@ export class ReceptionService {
         name: newPatient.name,
         cpf: newPatient.cpf,
         birthDate: newPatient.birthDate,
+        motherName: newPatient.motherName,
         arrivalTime: newPatient.arrivalTime,
         entryDate: newPatient.entryDate,
         status: newPatient.status
@@ -88,6 +91,7 @@ export class ReceptionService {
       name: patientData.name,
       cpf: patientData.cpf,
       birthDate: patientData.birthDate,
+      motherName: patientData.motherName,
       updatedAt: Timestamp.fromDate(new Date())
     })).pipe(
       map(() => ({
@@ -95,6 +99,7 @@ export class ReceptionService {
         name: patientData.name || '',
         cpf: patientData.cpf || '',
         birthDate: patientData.birthDate || '',
+        motherName: patientData.motherName || '',
         arrivalTime: patientData.arrivalTime || '',
         entryDate: patientData.entryDate || '',
         status: patientData.status || 'waiting'

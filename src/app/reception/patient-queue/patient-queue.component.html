@@ -43,6 +43,7 @@
             <th>Nome do Paciente</th>
             <th>CPF</th>
             <th>Data de Nascimento</th>
+            <th>Nome da Mãe</th>
             <th>Horário de Entrada</th>
             <th>Status</th>
             <th>Ações</th>
@@ -62,6 +63,7 @@
               </td>
               <td>{{ patient.cpf }}</td>
               <td>{{ patient.birthDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ patient.motherName || 'Não informado' }}</td>
               <td>{{ patient.arrivalTime }}</td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusClass(patient.status)">
@@ -80,14 +82,14 @@
               </td>
             </tr>
             <tr *ngIf="filteredPatients.length === 0">
-              <td colspan="7" class="no-data">
+              <td colspan="8" class="no-data">
                 Nenhum paciente na fila de triagem.
               </td>
             </tr>
           </ng-container>
           <ng-template #loadingTemplate>
             <tr>
-              <td colspan="7" class="loading">
+              <td colspan="8" class="loading">
                 <div class="spinner"></div>
                 Carregando fila de triagem...
               </td>
@@ -170,6 +172,19 @@
           <div *ngIf="submitted && f['birthDate'].errors" class="invalid-feedback">
             <div *ngIf="f['birthDate'].errors['required']">Data de nascimento é obrigatória</div>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">family_restroom</span>
+            Nome da Mãe
+          </label>
+          <input 
+            type="text" 
+            formControlName="motherName" 
+            class="form-control" 
+            placeholder="Nome completo da mãe"
+          />
         </div>
 
         <div class="form-actions">

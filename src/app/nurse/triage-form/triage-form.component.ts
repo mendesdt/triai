@@ -76,7 +76,7 @@ export class TriageFormComponent implements OnInit {
       otherSymptoms: [''],
       duration: ['', Validators.required],
       intensity: ['Leve', Validators.required],
-      priority: ['Baixa', Validators.required],
+      priority: ['Baixa', Validators.required], // Enfermeira deve selecionar
       medications: [''],
       allergies: [''],
       // Vital Signs
@@ -118,7 +118,8 @@ export class TriageFormComponent implements OnInit {
         this.triageForm.patchValue({
           name: params['name'] || '',
           cpf: params['cpf'] || '',
-          birthDate: params['birthDate'] || this.triageForm.get('birthDate')?.value
+          birthDate: params['birthDate'] || this.triageForm.get('birthDate')?.value,
+          motherName: params['motherName'] || '' // Pré-preencher nome da mãe
         });
       }
     });
@@ -204,7 +205,7 @@ export class TriageFormComponent implements OnInit {
       otherSymptoms: formValues.otherSymptoms,
       duration: formValues.duration,
       intensity: formValues.intensity,
-      priority: formValues.priority,
+      priority: formValues.priority, // Usar a prioridade selecionada pela enfermeira
       medications: formValues.medications,
       allergies: formValues.allergies,
       vitalSigns: {
@@ -273,20 +274,8 @@ export class TriageFormComponent implements OnInit {
   }
 
   cancel(): void {
-    // Se veio de um paciente pendente, NÃO remove da lista, apenas volta o status para 'waiting'
-    if (this.pendingPatientId) {
-      this.receptionService.updatePatientStatus(this.pendingPatientId, 'waiting')
-        .subscribe({
-          next: () => {
-            this.router.navigate(['/triage-pending']);
-          },
-          error: (error) => {
-            console.error('Error updating patient status:', error);
-            this.router.navigate(['/triage-pending']);
-          }
-        });
-    } else {
-      this.router.navigate(['/triage-completed']);
-    }
+    // Se veio de um paciente pendente, NÃO remove da lista, apenas navega de volta
+    // O paciente permanece na fila de triagens pendentes
+    this.router.navigate(['/triage-pending']);
   }
 }

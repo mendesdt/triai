@@ -35,7 +35,8 @@ export class PatientQueueComponent implements OnInit {
     this.patientForm = this.formBuilder.group({
       name: ['', Validators.required],
       cpf: ['', Validators.required],
-      birthDate: ['', Validators.required]
+      birthDate: ['', Validators.required],
+      motherName: [''] // Adicionar campo nome da mãe
     });
   }
 
@@ -92,7 +93,8 @@ export class PatientQueueComponent implements OnInit {
     this.patientForm.patchValue({
       name: patient.name,
       cpf: patient.cpf,
-      birthDate: patient.birthDate
+      birthDate: patient.birthDate,
+      motherName: patient.motherName || ''
     });
     this.showAddPatientModal = true;
   }
@@ -126,7 +128,8 @@ export class PatientQueueComponent implements OnInit {
     const patientData = {
       name: this.f['name'].value,
       cpf: this.f['cpf'].value,
-      birthDate: this.f['birthDate'].value
+      birthDate: this.f['birthDate'].value,
+      motherName: this.f['motherName'].value
     };
     
     const operation = this.editingPatient 

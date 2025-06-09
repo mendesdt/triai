@@ -23,8 +23,8 @@ export class PatientService {
   private completedTriagesCollection = 'completed-triages';
 
   // Mock data for demonstration (will be replaced by Firebase)
-  private patientHistories: { [key: number]: PatientHistory[] } = {
-    1: [
+  private patientHistories: { [key: string]: PatientHistory[] } = {
+    '1': [
       {
         id: '1',
         date: '15/11/2024 - 14:20',
@@ -32,7 +32,53 @@ export class PatientService {
         diagnosis: 'Síndrome gripal',
         medications: 'Dipirona 500mg, Paracetamol 750mg',
         evolution: 'Paciente apresentou melhora dos sintomas após 3 dias de tratamento.',
-        status: 'Finalizado'
+        status: 'Finalizado',
+        consultReason: 'Febre alta persistente e dores no corpo há 3 dias',
+        symptoms: ['Febre', 'Dor de cabeça', 'Dor muscular', 'Tosse'],
+        otherSymptoms: 'Mal-estar geral e perda de apetite',
+        duration: '3 dias',
+        intensity: 'Moderada',
+        priority: 'Média',
+        allergies: 'Nenhuma Alergia Conhecida',
+        vitalSigns: {
+          heartRate: 85,
+          respiratoryRate: 18,
+          temperature: 38.2,
+          bloodPressureSystolic: 120,
+          bloodPressureDiastolic: 80,
+          oxygenSaturation: 98
+        },
+        motherName: 'Maria José Silva',
+        professionalName: 'Dr. Ana Souza',
+        professionalRole: 'Médico',
+        observations: 'Paciente orientado sobre repouso e hidratação adequada. Retorno em caso de piora dos sintomas.'
+      },
+      {
+        id: '2',
+        date: '10/10/2024 - 09:15',
+        type: 'Triagem de Enfermagem',
+        diagnosis: 'Hipertensão arterial leve',
+        medications: 'Losartana 50mg',
+        evolution: 'Pressão arterial controlada com medicação.',
+        status: 'Acompanhamento',
+        consultReason: 'Consulta de rotina para controle da pressão arterial',
+        symptoms: ['Dor de cabeça'],
+        duration: '1 semana',
+        intensity: 'Leve',
+        priority: 'Baixa',
+        allergies: 'Alergia a dipirona',
+        vitalSigns: {
+          heartRate: 72,
+          respiratoryRate: 16,
+          temperature: 36.5,
+          bloodPressureSystolic: 140,
+          bloodPressureDiastolic: 90,
+          oxygenSaturation: 99
+        },
+        motherName: 'Maria José Silva',
+        professionalName: 'Enf. Carlos Lima',
+        professionalRole: 'Enfermeiro',
+        observations: 'Paciente orientado sobre dieta hipossódica e exercícios físicos regulares.'
       }
     ]
   };
@@ -95,9 +141,6 @@ export class PatientService {
   registerTriage(triageData: Partial<Patient>): Observable<Patient> {
     const now = new Date();
     
-    // Calcular prioridade baseada nos sintomas e sinais vitais
-    const priority = this.calculatePriority(triageData);
-    
     const newTriage = {
       name: triageData.name || '',
       cpf: triageData.cpf || '',
@@ -111,7 +154,7 @@ export class PatientService {
       medications: triageData.medications || '',
       allergies: triageData.allergies || '',
       vitalSigns: triageData.vitalSigns || {},
-      priority: priority,
+      priority: triageData.priority || 'Baixa', // Usar a prioridade selecionada pela enfermeira
       arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       triageStatus: 'completed',
       createdAt: Timestamp.fromDate(now),
@@ -134,11 +177,8 @@ export class PatientService {
   updateTriage(id: string, triageData: Partial<Patient>): Observable<Patient> {
     const triageRef = doc(db, this.triagesCollection, id);
     
-    const priority = this.calculatePriority(triageData);
-    
     const updateData = {
       ...triageData,
-      priority: priority,
       updatedAt: Timestamp.fromDate(new Date())
     };
 
@@ -230,68 +270,14 @@ export class PatientService {
     );
   }
 
-  // Calcular prioridade baseada nos sintomas e sinais vitais
-  private calculatePriority(triageData: Partial<Patient>): 'Alta' | 'Média' | 'Baixa' {
-    let score = 0;
-    
-    // Verificar sintomas críticos
-    const criticalSymptoms = ['Falta de ar', 'Dor no peito', 'Convulsão', 'Perda de consciência'];
-    const symptoms = triageData.symptoms || [];
-    
-    if (symptoms.some(symptom => criticalSymptoms.includes(symptom))) {
-      score += 3;
-    }
-    
-    // Verificar intensidade
-    if (triageData.intensity === 'Alta') {
-      score += 2;
-    } else if (triageData.intensity === 'Moderada') {
-      score += 1;
-    }
-    
-    // Verificar sinais vitais
-    const vitals = triageData.vitalSigns;
-    if (vitals) {
-      // Temperatura alta
-      if (vitals.temperature && vitals.temperature > 38.5) {
-        score += 2;
-      }
-      
-      // Pressão arterial alta
-      if (vitals.bloodPressureSystolic && vitals.bloodPressureSystolic > 160) {
-        score += 1;
-      }
-      
-      // Saturação baixa
-      if (vitals.oxygenSaturation && vitals.oxygenSaturation < 95) {
-        score += 3;
-      }
-      
-      // Frequência cardíaca alterada
-      if (vitals.heartRate && (vitals.heartRate > 100 || vitals.heartRate < 60)) {
-        score += 1;
-      }
-    }
-    
-    // Determinar prioridade
-    if (score >= 4) {
-      return 'Alta';
-    } else if (score >= 2) {
-      return 'Média';
-    } else {
-      return 'Baixa';
-    }
-  }
-
   // Métodos mock para compatibilidade (serão implementados posteriormente)
   getPatientById(id: string): Observable<Patient | undefined> {
     return this.getTriageById(id);
   }
 
   getPatientHistory(patientId: string): Observable<PatientHistory[]> {
-    // Convert string ID to number for accessing mock data
-    const numericId = parseInt(patientId, 10);
-    return of(this.patientHistories[numericId] || []);
+    // Retornar histórico completo com todos os campos necessários
+    return of(this.patientHistories[patientId] || []);
   }
 
   getPatientAnalysis(patientId: string): Observable<any> {

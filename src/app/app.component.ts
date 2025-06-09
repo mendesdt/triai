@@ -58,8 +58,14 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      // Don't show sidebar on login page
-      this.showSidebar = !event.url.includes('/login');
+      // Só mostrar sidebar se estiver logado E não estiver na página de login
+      this.showSidebar = this.authService.isAuthenticated() && !event.url.includes('/login');
+    });
+
+    // Também escutar mudanças no estado de autenticação
+    this.authService.currentUser$.subscribe(user => {
+      const currentUrl = this.router.url;
+      this.showSidebar = !!user && !currentUrl.includes('/login');
     });
   }
 }
