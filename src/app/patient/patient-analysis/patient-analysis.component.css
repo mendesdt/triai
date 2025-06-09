@@ -1,0 +1,497 @@
+.analysis-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-left h1 {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.header-left h1 .material-icons {
+  font-size: 28px;
+  margin-right: 12px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-action .material-icons {
+  font-size: 18px;
+}
+
+.patient-profile {
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.profile-card {
+  display: flex;
+  padding: 24px;
+}
+
+.profile-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.meta-item .material-icons {
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.analysis-card {
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px 24px;
+  background-color: var(--primary-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+}
+
+.card-header .material-icons {
+  font-size: 22px;
+}
+
+.card-content {
+  padding: 24px;
+}
+
+/* Risk Assessment */
+.risk-overview {
+  display: flex;
+  justify-content: center;
+}
+
+.risk-score {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 6px solid;
+  position: relative;
+}
+
+.score-circle.risk-low {
+  border-color: var(--success);
+  background-color: #E8F5E9;
+}
+
+.score-circle.risk-medium {
+  border-color: var(--warning);
+  background-color: #FFF8E1;
+}
+
+.score-circle.risk-high {
+  border-color: var(--error);
+  background-color: #FFEBEE;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-max {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.risk-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.risk-level {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.risk-level.risk-low {
+  color: var(--success);
+}
+
+.risk-level.risk-medium {
+  color: var(--warning);
+}
+
+.risk-level.risk-high {
+  color: var(--error);
+}
+
+.risk-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Alerts */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border-left: 4px solid;
+}
+
+.alert-danger {
+  background-color: #FFEBEE;
+  border-left-color: var(--error);
+  color: var(--error);
+}
+
+.alert-warning {
+  background-color: #FFF8E1;
+  border-left-color: var(--warning);
+  color: var(--warning);
+}
+
+.alert-info {
+  background-color: #E3F2FD;
+  border-left-color: var(--primary);
+  color: var(--primary);
+}
+
+.alert-item .material-icons {
+  font-size: 24px;
+  margin-top: 2px;
+}
+
+.alert-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.alert-content p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Patterns */
+.patterns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pattern-item {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.pattern-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pattern-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pattern-frequency {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-radius: 12px;
+}
+
+.pattern-recommendation {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Trends */
+.trends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.trend-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trend-improving {
+  background-color: #E8F5E9;
+  color: var(--success);
+}
+
+.trend-stable {
+  background-color: #E3F2FD;
+  color: var(--primary);
+}
+
+.trend-worsening {
+  background-color: #FFEBEE;
+  color: var(--error);
+}
+
+.trend-icon .material-icons {
+  font-size: 24px;
+}
+
+.trend-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.trend-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Recommendations */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.recommendation-priority {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.priority-high {
+  background-color: #FFEBEE;
+  color: var(--error);
+}
+
+.priority-medium {
+  background-color: #FFF8E1;
+  color: var(--warning);
+}
+
+.priority-low {
+  background-color: #E3F2FD;
+  color: var(--primary);
+}
+
+.recommendation-priority .material-icons {
+  font-size: 20px;
+}
+
+.recommendation-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.recommendation-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(21, 101, 192, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+.loading-container p {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .analysis-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .profile-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-avatar {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .profile-meta {
+    justify-content: center;
+  }
+
+  .risk-score {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .trend-item, .recommendation-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .trend-icon, .recommendation-priority {
+    align-self: center;
+  }
+}

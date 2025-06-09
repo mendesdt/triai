@@ -1,0 +1,182 @@
+<div class="history-container">
+  <div class="history-header">
+    <div class="header-left">
+      <h1>
+        <span class="material-icons">history</span>
+        Histórico do Paciente
+      </h1>
+      <p class="subtitle">Consultas anteriores, diagnósticos e evolução</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-action" (click)="refresh()">
+        <span class="material-icons">refresh</span>
+        Atualizar
+      </button>
+      <button class="btn-action btn-integrate">
+        <span class="material-icons">sync</span>
+        Integrar PEC-SUS
+      </button>
+    </div>
+  </div>
+
+  <div class="patient-profile">
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <img [src]="patient?.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+      </div>
+      <div class="profile-info">
+        <h2 class="profile-name">{{ patient?.name }}</h2>
+        <div class="profile-meta">
+          <div class="meta-item">
+            <span class="material-icons">badge</span>
+            <span>{{ patient?.cpf }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">cake</span>
+            <span>{{ patient?.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient?.birthDate || '') }} anos)</span>
+          </div>
+        </div>
+        <div class="profile-location" *ngIf="patient?.city">
+          <span class="material-icons">location_on</span>
+          <span>{{ patient?.city }}, {{ patient?.state }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn-history active">
+        <span class="material-icons">history</span>
+        Histórico
+      </button>
+      <button class="btn-analysis" (click)="navigateToAnalysis()">
+        <span class="material-icons">analytics</span>
+        Análise de Paciente
+      </button>
+    </div>
+  </div>
+
+  <div class="history-content">
+    <div class="history-section">
+      <div class="section-header">
+        <span class="material-icons">event_note</span>
+        <h2>Atendimentos Recentes</h2>
+      </div>
+
+      <ng-container *ngIf="!loading; else loadingTemplate">
+        <div class="history-list" *ngIf="patientHistory.length > 0; else emptyHistory">
+          <div *ngFor="let record of patientHistory" class="history-card">
+            <div class="history-card-header">
+              <div class="header-left">
+                <div class="appointment-type">
+                  <span class="material-icons" 
+                    [ngClass]="{
+                      'icon-doctor': record.type.includes('Consulta'),
+                      'icon-nurse': record.type.includes('Enfermagem')
+                    }">
+                    {{ record.type.includes('Consulta') ? 'medical_services' : 'healing' }}
+                  </span>
+                  <h3>{{ record.type }}</h3>
+                </div>
+                <span class="appointment-date">{{ record.date }}</span>
+              </div>
+              <div class="header-right">
+                <span class="status-badge" [ngClass]="{
+                  'status-completed': record.status === 'Finalizado',
+                  'status-follow-up': record.status === 'Acompanhamento',
+                  'status-evolution': record.status === 'Evolução'
+                }">{{ record.status }}</span>
+              </div>
+            </div>
+            
+            <div class="history-card-content">
+              <div class="info-group">
+                <span class="info-label">Diagnóstico:</span>
+                <span class="info-value">{{ record.diagnosis }}</span>
+              </div>
+              
+              <div class="info-group">
+                <span class="info-label">Medicamentos:</span>
+                <span class="info-value">{{ record.medications }}</span>
+              </div>
+              
+              <div class="info-group">
+                <span class="info-label">Evolução:</span>
+                <span class="info-value">{{ record.evolution }}</span>
+              </div>
+            </div>
+            
+            <div class="history-card-footer">
+              <button class="btn-details" (click)="viewDetails(record)">
+                <span class="material-icons">visibility</span>
+                Detalhes Completos
+              </button>
+            </div>
+          </div>
+          
+          <button *ngIf="patientHistory.length > 3" class="btn-load-more">
+            <span class="material-icons">expand_more</span>
+            Ver mais atendimentos
+          </button>
+        </div>
+
+        <ng-template #emptyHistory>
+          <div class="empty-history">
+            <span class="material-icons">info</span>
+            <p>Não há histórico de atendimentos para este paciente.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <ng-template #loadingTemplate>
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Carregando histórico do paciente...</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div *ngIf="selectedRecord" class="modal-overlay" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Detalhes da Consulta</h3>
+      <button class="btn-close" (click)="closeDetails()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <h4>Informações Gerais</h4>
+        <div class="detail-item">
+          <span class="detail-label">Data/Hora:</span>
+          <span class="detail-value">{{ selectedRecord.date }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tipo:</span>
+          <span class="detail-value">{{ selectedRecord.type }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status:</span>
+          <span class="detail-value">{{ selectedRecord.status }}</span>
+        </div>
+      </div>
+      
+      <div class="detail-section">
+        <h4>Diagnóstico e Tratamento</h4>
+        <div class="detail-item">
+          <span class="detail-label">Diagnóstico:</span>
+          <span class="detail-value">{{ selectedRecord.diagnosis }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Medicamentos:</span>
+          <span class="detail-value">{{ selectedRecord.medications }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Evolução:</span>
+          <span class="detail-value">{{ selectedRecord.evolution }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

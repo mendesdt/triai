@@ -1,0 +1,210 @@
+<div class="completed-patients-container">
+  <div class="completed-patients-card">
+    <div class="card-header">
+      <div class="header-left">
+        <h1>
+          <span class="material-icons">check_circle</span>
+          Pacientes Atendidos
+        </h1>
+      </div>
+      <div class="header-right">
+        <div class="date-filter">
+          <label>Data:</label>
+          <input 
+            type="date" 
+            [(ngModel)]="selectedDate"
+            (change)="onDateChange()"
+            class="date-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()" 
+          placeholder="Buscar por nome ou CPF"
+          class="search-input"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="patients-table">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Idade</th>
+            <th>CPF</th>
+            <th>Horário de Atendimento</th>
+            <th>Diagnóstico</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngIf="!loading; else loadingTemplate">
+            <tr *ngFor="let patient of filteredPatients">
+              <td>
+                <div class="patient-info">
+                  <div class="patient-avatar">
+                    <img [src]="patient.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+                  </div>
+                  <span class="patient-name">{{ patient.name }}</span>
+                </div>
+              </td>
+              <td>{{ getAge(patient.birthDate) }} anos</td>
+              <td>{{ patient.cpf }}</td>
+              <td>{{ patient.completedTime || '14:30' }}</td>
+              <td>{{ patient.diagnosis || 'Síndrome gripal' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-view" (click)="viewPatientDetails(patient)">
+                    <span class="material-icons">visibility</span>
+                    Visualizar
+                  </button>
+                  <button class="btn-history" (click)="viewPatientHistory(patient.id)">
+                    <span class="material-icons">history</span>
+                    Histórico
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredPatients.length === 0">
+              <td colspan="6" class="no-data">
+                Nenhum paciente atendido encontrado para esta data.
+              </td>
+            </tr>
+          </ng-container>
+          <ng-template #loadingTemplate>
+            <tr>
+              <td colspan="6" class="loading">
+                <div class="spinner"></div>
+                Carregando pacientes atendidos...
+              </td>
+            </tr>
+          </ng-template>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="completed-patients-footer">
+      <div class="total-count">
+        Total: <strong>{{ filteredPatients.length }}</strong> pacientes atendidos
+      </div>
+      <button class="btn-refresh" (click)="refreshList()">
+        <span class="material-icons">refresh</span>
+        Atualizar lista
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Details Modal -->
+<div *ngIf="selectedPatient" class="modal-overlay" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Detalhes da Consulta</h3>
+      <button class="btn-close" (click)="closeDetails()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="patient-summary">
+        <div class="patient-info-header">
+          <div class="patient-avatar-large">
+            <img [src]="selectedPatient.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+          </div>
+          <div class="patient-details">
+            <h2>{{ selectedPatient.name }}</h2>
+            <p>{{ selectedPatient.cpf }} • {{ getAge(selectedPatient.birthDate) }} anos</p>
+          </div>
+        </div>
+
+        <div class="consultation-details">
+          <div class="detail-section">
+            <h4>Informações do Atendimento</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Data/Hora:</span>
+                <span class="detail-value">{{ selectedDate | date:'dd/MM/yyyy' }} - {{ selectedPatient.completedTime }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Diagnóstico:</span>
+                <span class="detail-value">{{ selectedPatient.diagnosis || 'Síndrome gripal' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Prioridade na Triagem:</span>
+                <span class="detail-value priority-badge" [ngClass]="getPriorityClass(selectedPatient.priority)">
+                  {{ selectedPatient.priority }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Dados da Triagem</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Motivo da Consulta:</span>
+                <span class="detail-value">{{ selectedPatient.consultReason || 'Febre alta persistente e dores no corpo há ' + selectedPatient.duration }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Sintomas:</span>
+                <span class="detail-value">
+                  <div class="symptoms-display">
+                    <span *ngFor="let symptom of selectedPatient.symptoms" class="symptom-chip">{{ symptom }}</span>
+                  </div>
+                  <div *ngIf="selectedPatient.otherSymptoms" class="other-symptoms">
+                    <strong>Outros:</strong> {{ selectedPatient.otherSymptoms }}
+                  </div>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Duração dos Sintomas:</span>
+                <span class="detail-value">{{ selectedPatient.duration }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Intensidade:</span>
+                <span class="detail-value intensity-badge" [ngClass]="getIntensityClass(selectedPatient.intensity)">
+                  {{ selectedPatient.intensity }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Medicamentos Utilizados:</span>
+                <span class="detail-value">{{ selectedPatient.medications || 'Nenhum medicamento relatado' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Evolução do Atendimento</h4>
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <strong>Chegada:</strong> {{ selectedPatient.arrivalTime }}
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <strong>Triagem:</strong> Realizada - Prioridade {{ selectedPatient.priority }}
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-marker completed"></div>
+                <div class="timeline-content">
+                  <strong>Atendimento Concluído:</strong> {{ selectedPatient.completedTime }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

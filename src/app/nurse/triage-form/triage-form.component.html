@@ -1,0 +1,338 @@
+<div class="triage-container">
+  <div class="triage-card">
+    <div class="card-header">
+      <div class="header-icon">
+        <span class="material-icons">health_and_safety</span>
+      </div>
+      <h1>{{ isEditMode ? 'Editar Triagem' : 'Nova Triagem de Enfermagem' }}</h1>
+      <p class="subtitle">{{ isEditMode ? 'Atualize os dados do paciente' : 'Preencha os dados do paciente para triagem inicial' }}</p>
+    </div>
+
+    <form [formGroup]="triageForm" (ngSubmit)="onSubmit()" class="triage-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <span class="material-icons">person</span>
+          Informações Básicas
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">badge</span>
+              CPF ou Cartão SUS
+            </label>
+            <input 
+              type="text" 
+              formControlName="cpf" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': submitted && f['cpf'].errors }"
+              placeholder="Informe o CPF ou Cartão SUS"
+            />
+            <div *ngIf="submitted && f['cpf'].errors" class="invalid-feedback">
+              <div *ngIf="f['cpf'].errors['required']">CPF ou Cartão SUS é obrigatório</div>
+              <div *ngIf="f['cpf'].errors['minlength']">CPF deve ter no mínimo 11 dígitos</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">person</span>
+              Nome completo
+            </label>
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': submitted && f['name'].errors }"
+              placeholder="Nome do paciente"
+            />
+            <div *ngIf="submitted && f['name'].errors" class="invalid-feedback">
+              <div *ngIf="f['name'].errors['required']">Nome é obrigatório</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">calendar_today</span>
+              Data de Nascimento
+            </label>
+            <input 
+              type="date" 
+              formControlName="birthDate" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': submitted && f['birthDate'].errors }"
+            />
+            <div *ngIf="submitted && f['birthDate'].errors" class="invalid-feedback">
+              <div *ngIf="f['birthDate'].errors['required']">Data de nascimento é obrigatória</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">family_restroom</span>
+              Nome da Mãe
+            </label>
+            <input 
+              type="text" 
+              formControlName="motherName" 
+              class="form-control" 
+              placeholder="Nome completo da mãe"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">description</span>
+            Motivo da Consulta
+          </label>
+          <textarea 
+            formControlName="consultReason" 
+            class="form-control textarea" 
+            [ngClass]="{ 'is-invalid': submitted && f['consultReason'].errors }"
+            placeholder="Descreva o motivo principal da consulta"
+          ></textarea>
+          <div *ngIf="submitted && f['consultReason'].errors" class="invalid-feedback">
+            <div *ngIf="f['consultReason'].errors['required']">Motivo da consulta é obrigatório</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vital Signs -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <span class="material-icons">monitor_heart</span>
+          Sinais Vitais
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">favorite</span>
+              Frequência Cardíaca (BPM)
+            </label>
+            <input 
+              type="number" 
+              formControlName="heartRate" 
+              class="form-control" 
+              placeholder="Ex: 72"
+              min="30"
+              max="200"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">air</span>
+              Frequência Respiratória (RPM)
+            </label>
+            <input 
+              type="number" 
+              formControlName="respiratoryRate" 
+              class="form-control" 
+              placeholder="Ex: 16"
+              min="8"
+              max="40"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">thermostat</span>
+              Temperatura Corporal (°C)
+            </label>
+            <input 
+              type="number" 
+              formControlName="temperature" 
+              class="form-control" 
+              placeholder="Ex: 36.5"
+              step="0.1"
+              min="30"
+              max="45"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">water_drop</span>
+              Saturação de Oxigênio (%)
+            </label>
+            <input 
+              type="number" 
+              formControlName="oxygenSaturation" 
+              class="form-control" 
+              placeholder="Ex: 98"
+              min="70"
+              max="100"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">compress</span>
+              Pressão Arterial Sistólica (mmHg)
+            </label>
+            <input 
+              type="number" 
+              formControlName="bloodPressureSystolic" 
+              class="form-control" 
+              placeholder="Ex: 120"
+              min="60"
+              max="250"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">compress</span>
+              Pressão Arterial Diastólica (mmHg)
+            </label>
+            <input 
+              type="number" 
+              formControlName="bloodPressureDiastolic" 
+              class="form-control" 
+              placeholder="Ex: 80"
+              min="40"
+              max="150"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Symptoms -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <span class="material-icons">sick</span>
+          Sintomas e Condições
+        </h3>
+        
+        <div class="form-group">
+          <label>Sintomas apresentados</label>
+          <div class="checkbox-group">
+            <div *ngFor="let symptom of symptoms" class="checkbox-item">
+              <input 
+                type="checkbox" 
+                [id]="symptom.id" 
+                [value]="symptom.name"
+                (change)="onCheckboxChange($event)"
+              />
+              <label [for]="symptom.id">{{ symptom.name }}</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">edit_note</span>
+            Outros sintomas (descreva)
+          </label>
+          <textarea 
+            formControlName="otherSymptoms" 
+            class="form-control textarea" 
+            placeholder="Outros sintomas (descreva)"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <span class="material-icons">schedule</span>
+              Tempo de duração dos sintomas
+            </label>
+            <input 
+              type="text" 
+              formControlName="duration" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': submitted && f['duration'].errors }"
+              placeholder="Ex: 3 dias, 12 horas"
+            />
+            <div *ngIf="submitted && f['duration'].errors" class="invalid-feedback">
+              <div *ngIf="f['duration'].errors['required']">Tempo de duração é obrigatório</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="material-icons">signal_cellular_alt</span>
+              Intensidade dos sintomas
+            </label>
+            <select 
+              formControlName="intensity" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': submitted && f['intensity'].errors }"
+            >
+              <option *ngFor="let option of intensityOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical History -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <span class="material-icons">medical_information</span>
+          Histórico Médico
+        </h3>
+        
+        <div class="form-group">
+          <label>
+            <span class="material-icons">medication</span>
+            Uso de medicamentos recentes
+          </label>
+          <textarea 
+            formControlName="medications" 
+            class="form-control textarea" 
+            placeholder="Liste os medicamentos utilizados recentemente"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">warning</span>
+            Alergias conhecidas
+          </label>
+          <div class="allergies-options">
+            <div class="checkbox-item">
+              <input 
+                type="checkbox" 
+                id="no-allergies"
+                (change)="onNoAllergiesChange($event)"
+              />
+              <label for="no-allergies">Nenhuma Alergia Conhecida</label>
+            </div>
+          </div>
+          <textarea 
+            formControlName="allergies" 
+            class="form-control textarea" 
+            placeholder="Descreva as alergias conhecidas"
+            [disabled]="noAllergiesChecked"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">
+          <span class="material-icons">close</span>
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          <span *ngIf="!loading" class="material-icons">save</span>
+          <span *ngIf="loading" class="spinner"></span>
+          {{ isEditMode ? 'Atualizar Triagem' : 'Registrar Triagem' }}
+        </button>
+      </div>
+
+      <div *ngIf="success" class="success-message">
+        <span class="material-icons">check_circle</span>
+        {{ isEditMode ? 'Triagem atualizada com sucesso!' : 'Triagem registrada com sucesso!' }}
+      </div>
+    </form>
+  </div>
+</div>

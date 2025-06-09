@@ -1,0 +1,195 @@
+<div class="summary-container">
+  <div class="summary-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+      Voltar
+    </button>
+    <div class="action-buttons">
+      <button 
+        class="btn-action btn-history" 
+        [disabled]="!hasPatientHistory"
+        [title]="!hasPatientHistory ? 'Este paciente não possui histórico de outros atendimentos registrados' : 'Ver histórico do paciente'"
+        (click)="viewPatientHistory()">
+        <span class="material-icons">history</span>
+        Histórico do Paciente
+      </button>
+      <button class="btn-action btn-complete" (click)="completeAttendance()">
+        <span class="material-icons">check_circle</span>
+        Completar Atendimento
+      </button>
+      <button class="btn-action btn-remove" (click)="removeAttendance()">
+        <span class="material-icons">cancel</span>
+        Remover Atendimento
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading && !notFound; else loadingTemplate">
+    <div class="patient-header">
+      <div class="patient-info">
+        <div class="patient-avatar">
+          <img [src]="patient?.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+          <span class="status-indicator" [ngClass]="{'status-online': patient?.priority === 'Alta'}"></span>
+        </div>
+        <div class="patient-details">
+          <h1 class="patient-name">{{ patient?.name }}</h1>
+          <div class="patient-metadata">
+            <div class="metadata-item">
+              <span class="material-icons">cake</span>
+              <span>{{ patient?.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient?.birthDate || '') }} anos)</span>
+            </div>
+            <div class="metadata-item">
+              <span class="material-icons">badge</span>
+              <span>CPF: {{ patient?.cpf }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="patient-location">
+        <div *ngIf="patient?.city" class="location-tag">
+          <span class="material-icons">location_on</span>
+          {{ patient?.city }}, {{ patient?.state }}
+        </div>
+        <div *ngIf="patient?.lastAppointment" class="appointment-tag">
+          <span class="material-icons">event</span>
+          Última consulta: {{ patient?.lastAppointment }}
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="card-title">
+          <span class="material-icons">description</span>
+          Motivo da Consulta
+        </div>
+        <p class="card-content">
+          {{ patient?.consultReason || 'Febre alta persistente e dores no corpo há ' + patient?.duration }}
+        </p>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">
+          <span class="material-icons">sick</span>
+          Sintomas
+        </div>
+        <div class="card-content">
+          <div class="symptoms-list">
+            <div *ngFor="let symptom of patient?.symptoms" class="symptom-tag">
+              <span class="material-icons">check_circle</span>
+              {{ symptom }}
+            </div>
+            <div *ngIf="patient?.otherSymptoms" class="other-symptoms">
+              <span class="label">Outros relatados:</span> "{{ patient?.otherSymptoms }}"
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">
+          <span class="material-icons">schedule</span>
+          Início, Intensidade e Evolução
+        </div>
+        <div class="card-content">
+          <div class="timeline-item">
+            <span class="label">Início:</span> {{ patient?.duration }} atrás
+          </div>
+          <div class="timeline-item">
+            <span class="label">Intensidade:</span> 
+            <span [ngClass]="{
+              'text-high': patient?.intensity === 'Alta',
+              'text-medium': patient?.intensity === 'Moderada',
+              'text-low': patient?.intensity === 'Leve'
+            }">{{ patient?.intensity }}</span>
+          </div>
+          <div class="timeline-item">
+            <span class="label">Evolução:</span> Piora progressiva desde o início dos sintomas
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">
+          <span class="material-icons">medication</span>
+          Medicamentos Utilizados
+        </div>
+        <div class="card-content">
+          <ng-container *ngIf="patient?.medications; else noMedications">
+            <div class="medications-list">
+              <div *ngFor="let med of (patient?.medications ?? '').split(', ')" class="medication-item">
+                <span class="material-icons">local_pharmacy</span>
+                {{ med }}
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noMedications>
+            <p class="no-data">Nenhum medicamento relatado</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">
+          <span class="material-icons">psychology</span>
+          Hipóteses Clínicas Sugeridas pela IA
+        </div>
+        <div class="card-content">
+          <ul class="hypothesis-list">
+            <li *ngFor="let hypothesis of clinicalHypotheses">
+              {{ hypothesis.description }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="summary-card alerts-card">
+        <div class="card-title">
+          <span class="material-icons">warning</span>
+          Alertas Clínicos
+        </div>
+        <div class="card-content">
+          <div *ngFor="let alert of clinicalAlerts" 
+               class="alert-item"
+               [ngClass]="{'alert-danger': alert.type === 'danger', 'alert-warning': alert.type === 'warning'}">
+            <span class="material-icons">
+              {{ alert.type === 'danger' ? 'dangerous' : 'warning_amber' }}
+            </span>
+            {{ alert.description }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-header">
+        <h2>
+          <span class="material-icons">edit_note</span>
+          Rascunho do Prontuário
+        </h2>
+        <button class="btn-copy" (click)="copyMedicalNotes()">
+          <span class="material-icons">{{ copied ? 'check' : 'content_copy' }}</span>
+          {{ copied ? 'Copiado' : 'Copiar' }}
+        </button>
+      </div>
+      <div class="notes-content">
+        <pre>{{ medicalNotes }}</pre>
+        <p class="notes-hint">Editável para ajustes antes do salvamento/cópia</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTemplate>
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando informações do paciente...</p>
+    </div>
+    <div *ngIf="notFound && !loading" class="not-found-container">
+      <span class="material-icons">error_outline</span>
+      <p>Paciente não encontrado.</p>
+      <button class="btn-back" (click)="router.navigate(['/patients'])">
+        Voltar para lista de pacientes
+      </button>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,103 @@
+<div class="patient-list-container">
+  <div class="patient-list-card">
+    <div class="card-header">
+      <div class="header-left">
+        <h1>
+          <span class="material-icons">people</span>
+          Pacientes em Espera
+        </h1>
+      </div>
+      <div class="header-right">
+        <div class="last-updated">
+          Atualizado há {{ loading ? '...' : '1' }} min
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()" 
+          placeholder="Buscar paciente"
+          class="search-input"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+
+      <div class="filter-box">
+        <label>Prioridade:</label>
+        <select [(ngModel)]="selectedPriority" (change)="onPriorityChange()">
+          <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="patients-table">
+        <thead>
+          <tr>
+            <th>Nome do Paciente</th>
+            <th>Horário de Chegada</th>
+            <th>Nível de Prioridade</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngIf="!loading; else loadingTemplate">
+            <tr *ngFor="let patient of filteredPatients">
+              <td>
+                <div class="patient-info">
+                  <div class="patient-avatar">
+                    <img [src]="patient.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+                  </div>
+                  <span class="patient-name">{{ patient.name }}</span>
+                </div>
+              </td>
+              <td>{{ patient.arrivalTime }}</td>
+              <td>
+                <span class="priority-badge" [ngClass]="getPriorityClass(patient.priority)">
+                  <span *ngIf="patient.priority === 'Alta'" class="material-icons">priority_high</span>
+                  <span *ngIf="patient.priority === 'Média'" class="material-icons">warning</span>
+                  <span *ngIf="patient.priority === 'Baixa'" class="material-icons">check_circle</span>
+                  <span *ngIf="patient.priority === 'Não triado'" class="material-icons">radio_button_unchecked</span>
+                  {{ patient.priority }}
+                </span>
+              </td>
+              <td>
+                <button class="btn-view" (click)="viewPatient(patient.id)">
+                  <span class="material-icons">visibility</span>
+                  Visualizar
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredPatients.length === 0">
+              <td colspan="4" class="no-data">
+                Nenhum paciente encontrado com os filtros aplicados.
+              </td>
+            </tr>
+          </ng-container>
+          <ng-template #loadingTemplate>
+            <tr>
+              <td colspan="4" class="loading">
+                <div class="spinner"></div>
+                Carregando pacientes...
+              </td>
+            </tr>
+          </ng-template>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="patient-list-footer">
+      <div class="total-count">
+        Total: <strong>{{ filteredPatients.length }}</strong> pacientes aguardando
+      </div>
+      <button class="btn-refresh" (click)="refreshList()">
+        <span class="material-icons">refresh</span>
+        Atualizar lista
+      </button>
+    </div>
+  </div>
+</div>

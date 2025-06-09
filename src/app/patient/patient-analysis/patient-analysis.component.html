@@ -1,0 +1,163 @@
+<div class="analysis-container">
+  <div class="analysis-header">
+    <div class="header-left">
+      <h1>
+        <span class="material-icons">analytics</span>
+        Análise de Paciente por IA
+      </h1>
+      <p class="subtitle">Insights baseados no histórico médico e padrões identificados</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-action" (click)="navigateToHistory()">
+        <span class="material-icons">history</span>
+        Voltar ao Histórico
+      </button>
+    </div>
+  </div>
+
+  <div class="patient-profile">
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <img [src]="patient?.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+      </div>
+      <div class="profile-info">
+        <h2 class="profile-name">{{ patient?.name }}</h2>
+        <div class="profile-meta">
+          <div class="meta-item">
+            <span class="material-icons">badge</span>
+            <span>{{ patient?.cpf }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">cake</span>
+            <span>{{ patient?.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient?.birthDate || '') }} anos)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading && analysis; else loadingTemplate">
+    <!-- Risk Assessment -->
+    <div class="analysis-card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">assessment</span>
+          Avaliação de Risco
+        </h3>
+      </div>
+      <div class="card-content">
+        <div class="risk-overview">
+          <div class="risk-score">
+            <div class="score-circle" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
+              <span class="score-value">{{ analysis.riskScore }}</span>
+              <span class="score-max">/100</span>
+            </div>
+            <div class="risk-label">
+              <span class="risk-level" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
+                {{ getRiskLevelText(analysis.riskLevel) }}
+              </span>
+              <span class="risk-description">Baseado no histórico médico</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="analysis-card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">warning</span>
+          Alertas Clínicos
+        </h3>
+      </div>
+      <div class="card-content">
+        <div class="alerts-list">
+          <div *ngFor="let alert of analysis.alerts" class="alert-item" [ngClass]="'alert-' + alert.type">
+            <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
+            <div class="alert-content">
+              <h4>{{ alert.title }}</h4>
+              <p>{{ alert.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patterns -->
+    <div class="analysis-card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">pattern</span>
+          Padrões Identificados
+        </h3>
+      </div>
+      <div class="card-content">
+        <div class="patterns-list">
+          <div *ngFor="let pattern of analysis.patterns" class="pattern-item">
+            <div class="pattern-header">
+              <span class="pattern-name">{{ pattern.pattern }}</span>
+              <span class="pattern-frequency">{{ pattern.frequency }}</span>
+            </div>
+            <p class="pattern-recommendation">{{ pattern.recommendation }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trends -->
+    <div class="analysis-card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">trending_up</span>
+          Tendências de Saúde
+        </h3>
+      </div>
+      <div class="card-content">
+        <div class="trends-list">
+          <div *ngFor="let trend of analysis.trends" class="trend-item">
+            <div class="trend-icon" [ngClass]="getTrendClass(trend.trend)">
+              <span class="material-icons">{{ getTrendIcon(trend.trend) }}</span>
+            </div>
+            <div class="trend-content">
+              <h4>{{ trend.metric }}</h4>
+              <p>{{ trend.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="analysis-card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">lightbulb</span>
+          Recomendações da IA
+        </h3>
+      </div>
+      <div class="card-content">
+        <div class="recommendations-list">
+          <div *ngFor="let rec of analysis.recommendations" class="recommendation-item">
+            <div class="recommendation-priority" [ngClass]="getPriorityClass(rec.priority)">
+              <span class="material-icons">
+                {{ rec.priority === 'high' ? 'priority_high' : rec.priority === 'medium' ? 'warning' : 'info' }}
+              </span>
+            </div>
+            <div class="recommendation-content">
+              <h4>{{ rec.category }}</h4>
+              <p>{{ rec.action }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Analisando dados do paciente...</p>
+    </div>
+  </ng-template>
+</div>

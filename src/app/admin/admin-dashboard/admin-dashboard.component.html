@@ -1,0 +1,304 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>
+        <span class="material-icons">dashboard</span>
+        Dashboard Administrativa
+      </h1>
+      <p class="subtitle">Monitoramento em tempo real e análises inteligentes</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-action" (click)="refresh()">
+        <span class="material-icons">refresh</span>
+        Atualizar
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'overview'"
+      (click)="selectTab('overview')">
+      <span class="material-icons">analytics</span>
+      Visão Geral
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'ai-alerts'"
+      (click)="selectTab('ai-alerts')">
+      <span class="material-icons">psychology</span>
+      Alertas IA
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'users'"
+      (click)="selectTab('users')">
+      <span class="material-icons">people</span>
+      Usuários
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'reports'"
+      (click)="selectTab('reports')">
+      <span class="material-icons">assessment</span>
+      Relatórios
+    </button>
+  </div>
+
+  <ng-container *ngIf="!loading; else loadingTemplate">
+    <!-- Overview Tab -->
+    <div *ngIf="selectedTab === 'overview'" class="tab-content">
+      <!-- Real-time Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon triages">
+            <span class="material-icons">health_and_safety</span>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats?.triagesCount }}</h3>
+            <p>Triagens Hoje</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon completed">
+            <span class="material-icons">check_circle</span>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats?.completedAttendances }}</h3>
+            <p>Atendimentos Concluídos</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon wait-time">
+            <span class="material-icons">schedule</span>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats?.averageWaitTime }}min</h3>
+            <p>Tempo Médio de Espera</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon priority">
+            <span class="material-icons">priority_high</span>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats?.mostCommonPriority }}</h3>
+            <p>Prioridade Mais Comum</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Stats -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">group</span>
+            Volume de Atendimentos por Profissional
+          </h2>
+        </div>
+        <div class="professionals-list">
+          <div *ngFor="let prof of dashboardStats?.professionalStats" class="professional-item">
+            <div class="professional-info">
+              <div class="professional-avatar">
+                <img [src]="prof.avatar || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+              </div>
+              <div class="professional-details">
+                <h4>{{ prof.name }}</h4>
+                <p>{{ prof.role }}</p>
+              </div>
+            </div>
+            <div class="professional-stats">
+              <span class="attendance-count">{{ prof.attendances }}</span>
+              <span class="attendance-label">atendimentos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Disease Patterns -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">trending_up</span>
+            Padrões Emergentes de Doenças
+          </h2>
+        </div>
+        <div class="patterns-list">
+          <div *ngFor="let pattern of diseasePatterns" class="pattern-item">
+            <div class="pattern-info">
+              <h4>{{ pattern.disease }}</h4>
+              <p>{{ pattern.count }} casos ({{ pattern.percentage }}%)</p>
+            </div>
+            <div class="pattern-trend" [ngClass]="getTrendClass(pattern.trend)">
+              <span class="material-icons">{{ getTrendIcon(pattern.trend) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Alerts Tab -->
+    <div *ngIf="selectedTab === 'ai-alerts'" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">psychology</span>
+            Alertas Inteligentes da IA
+          </h2>
+        </div>
+        <div class="alerts-list">
+          <div *ngFor="let alert of aiAlerts" class="alert-item" [ngClass]="getAlertClass(alert.type)">
+            <div class="alert-icon">
+              <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
+            </div>
+            <div class="alert-content">
+              <h4>{{ alert.title }}</h4>
+              <p>{{ alert.description }}</p>
+              <span class="alert-timestamp">{{ alert.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div *ngIf="selectedTab === 'users'" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">people</span>
+            Controle de Usuários
+          </h2>
+        </div>
+        <div class="users-table-container">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>E-mail</th>
+                <th>Função</th>
+                <th>Último Acesso</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of systemUsers">
+                <td>
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      <img [src]="user.avatar || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+                    </div>
+                    <span>{{ user.name }}</span>
+                  </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span class="role-badge" [ngClass]="user.role">
+                    {{ user.role === 'medico' ? 'Médico' : 'Enfermeiro' }}
+                  </span>
+                </td>
+                <td>{{ user.lastLogin }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="user.active ? 'active' : 'inactive'">
+                    {{ user.active ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+                <td>
+                  <button 
+                    class="btn-toggle" 
+                    [ngClass]="user.active ? 'btn-deactivate' : 'btn-activate'"
+                    (click)="toggleUserStatus(user.id)">
+                    {{ user.active ? 'Desativar' : 'Ativar' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Activity Logs -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">history</span>
+            Logs de Atividades
+          </h2>
+        </div>
+        <div class="logs-list">
+          <div *ngFor="let log of activityLogs" class="log-item">
+            <div class="log-timestamp">{{ log.timestamp }}</div>
+            <div class="log-content">
+              <strong>{{ log.userName }}</strong> {{ log.action }}
+              <div class="log-details">{{ log.details }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Tab -->
+    <div *ngIf="selectedTab === 'reports'" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">assessment</span>
+            Geração de Relatórios
+          </h2>
+        </div>
+        <div class="reports-grid">
+          <div class="report-card">
+            <h3>Relatório Diário</h3>
+            <p>Triagens e atendimentos do dia atual</p>
+            <button 
+              class="btn-generate" 
+              [disabled]="generatingReport"
+              (click)="generateReport('daily')">
+              <span *ngIf="!generatingReport" class="material-icons">download</span>
+              <span *ngIf="generatingReport" class="spinner"></span>
+              {{ generatingReport ? 'Gerando...' : 'Gerar PDF' }}
+            </button>
+          </div>
+          
+          <div class="report-card">
+            <h3>Relatório Semanal</h3>
+            <p>Análise consolidada dos últimos 7 dias</p>
+            <button 
+              class="btn-generate" 
+              [disabled]="generatingReport"
+              (click)="generateReport('weekly')">
+              <span *ngIf="!generatingReport" class="material-icons">download</span>
+              <span *ngIf="generatingReport" class="spinner"></span>
+              {{ generatingReport ? 'Gerando...' : 'Gerar PDF' }}
+            </button>
+          </div>
+          
+          <div class="report-card">
+            <h3>Relatório Mensal</h3>
+            <p>Insights e produtividade mensal</p>
+            <button 
+              class="btn-generate" 
+              [disabled]="generatingReport"
+              (click)="generateReport('monthly')">
+              <span *ngIf="!generatingReport" class="material-icons">download</span>
+              <span *ngIf="generatingReport" class="spinner"></span>
+              {{ generatingReport ? 'Gerando...' : 'Gerar PDF' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando dashboard...</p>
+    </div>
+  </ng-template>
+</div>

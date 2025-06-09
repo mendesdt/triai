@@ -1,0 +1,39 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <span class="material-icons">medical_services</span>
+      </div>
+      <span class="logo-text">Painel Profissional Saúde</span>
+    </div>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <ul>
+      <ng-container *ngFor="let item of menuItems">
+        <li *ngIf="isRouteAllowed(item.role)">
+          <a [routerLink]="item.route" [class.active]="isActive(item.route)">
+            <span class="material-icons">{{ item.icon }}</span>
+            <span>{{ item.title }}</span>
+          </a>
+        </li>
+      </ng-container>
+    </ul>
+  </nav>
+  
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">
+        <img [src]="currentUser?.avatar || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+      </div>
+      <div class="user-details">
+        <p class="user-name">{{ currentUser?.name }}</p>
+        <p class="user-role">{{ getRoleDisplayName() }}</p>
+      </div>
+    </div>
+    <button (click)="logout()" class="logout-btn">
+      <span class="material-icons">logout</span>
+      <span>Sair</span>
+    </button>
+  </div>
+</aside>

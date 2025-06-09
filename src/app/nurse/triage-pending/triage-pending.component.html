@@ -1,0 +1,99 @@
+<div class="pending-container">
+  <div class="pending-card">
+    <div class="card-header">
+      <div class="header-left">
+        <h1>
+          <span class="material-icons">assignment_ind</span>
+          Triagens Pendentes
+        </h1>
+        <p class="subtitle">Pacientes aguardando triagem de enfermagem</p>
+      </div>
+      <div class="header-right">
+        <button class="btn-refresh" (click)="refreshList()">
+          <span class="material-icons">refresh</span>
+          Atualizar
+        </button>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()" 
+          placeholder="Buscar por nome ou CPF"
+          class="search-input"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <div class="queue-stats">
+        <span class="stat-item">
+          <span class="material-icons">schedule</span>
+          {{ filteredPatients.length }} pacientes aguardando
+        </span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="pending-table">
+        <thead>
+          <tr>
+            <th>Posição</th>
+            <th>Nome do Paciente</th>
+            <th>CPF</th>
+            <th>Horário de Entrada</th>
+            <th>Tempo de Espera</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngIf="!loading; else loadingTemplate">
+            <tr *ngFor="let patient of filteredPatients; let i = index">
+              <td>
+                <span class="position-badge">{{ i + 1 }}º</span>
+              </td>
+              <td>
+                <div class="patient-info">
+                  <span class="patient-name">{{ patient.name }}</span>
+                </div>
+              </td>
+              <td>{{ patient.cpf }}</td>
+              <td>{{ patient.arrivalTime }}</td>
+              <td>
+                <span class="wait-time">{{ getWaitTime(patient.arrivalTime) }}</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-start-triage" (click)="startTriage(patient)">
+                    <span class="material-icons">play_arrow</span>
+                    Iniciar Triagem
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredPatients.length === 0">
+              <td colspan="6" class="no-data">
+                Nenhum paciente aguardando triagem.
+              </td>
+            </tr>
+          </ng-container>
+          <ng-template #loadingTemplate>
+            <tr>
+              <td colspan="6" class="loading">
+                <div class="spinner"></div>
+                Carregando pacientes pendentes...
+              </td>
+            </tr>
+          </ng-template>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pending-footer">
+      <div class="total-count">
+        Total: <strong>{{ filteredPatients.length }}</strong> pacientes aguardando triagem
+      </div>
+    </div>
+  </div>
+</div>
