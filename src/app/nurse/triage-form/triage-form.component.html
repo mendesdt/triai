@@ -28,6 +28,8 @@
               class="form-control" 
               [ngClass]="{ 'is-invalid': submitted && f['cpf'].errors }"
               placeholder="Informe o CPF ou Cartão SUS"
+              (input)="applyCpfMask($event)"
+              maxlength="14"
             />
             <div *ngIf="submitted && f['cpf'].errors" class="invalid-feedback">
               <div *ngIf="f['cpf'].errors['required']">CPF ou Cartão SUS é obrigatório</div>
@@ -221,6 +223,7 @@
                 type="checkbox" 
                 [id]="symptom.id" 
                 [value]="symptom.name"
+                [checked]="selectedSymptoms.includes(symptom.name)"
                 (change)="onCheckboxChange($event)"
               />
               <label [for]="symptom.id">{{ symptom.name }}</label>
@@ -271,6 +274,19 @@
               <option *ngFor="let option of intensityOptions" [value]="option.value">{{ option.label }}</option>
             </select>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">priority_high</span>
+            Prioridade da Triagem
+          </label>
+          <select 
+            formControlName="priority" 
+            class="form-control"
+          >
+            <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
         </div>
       </div>
 

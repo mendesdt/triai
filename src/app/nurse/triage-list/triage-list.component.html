@@ -52,9 +52,7 @@
             <tr *ngFor="let triage of filteredTriages">
               <td>
                 <div class="patient-info">
-                  <div class="patient-avatar">
-                    <img [src]="triage.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
-                  </div>
+                  <span class="material-icons" style="margin-right: 8px; color: var(--primary);">person</span>
                   <span class="patient-name">{{ triage.name }}</span>
                 </div>
               </td>
@@ -96,7 +94,7 @@
               </td>
             </tr>
           </ng-container>
-          <ng-template #loadingTemplate>
+          <ng-template #loadingTemplate">
             <tr>
               <td colspan="6" class="loading">
                 <div class="spinner"></div>

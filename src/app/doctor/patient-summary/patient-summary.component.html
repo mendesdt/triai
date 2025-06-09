@@ -28,7 +28,7 @@
     <div class="patient-header">
       <div class="patient-info">
         <div class="patient-avatar">
-          <img [src]="patient?.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+          <span class="material-icons" style="font-size: 48px; color: var(--primary);">person</span>
           <span class="status-indicator" [ngClass]="{'status-online': patient?.priority === 'Alta'}"></span>
         </div>
         <div class="patient-details">

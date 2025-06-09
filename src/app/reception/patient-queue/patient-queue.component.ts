@@ -34,11 +34,24 @@ export class PatientQueueComponent implements OnInit {
   initializeForm(): void {
     this.patientForm = this.formBuilder.group({
       name: ['', Validators.required],
-      cpf: ['', Validators.required]
+      cpf: ['', Validators.required],
+      birthDate: ['', Validators.required]
     });
   }
 
   get f() { return this.patientForm.controls; }
+
+  applyCpfMask(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    
+    if (value.length <= 11) {
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    
+    this.patientForm.patchValue({ cpf: value });
+  }
 
   loadPendingPatients(): void {
     this.loading = true;
@@ -78,7 +91,8 @@ export class PatientQueueComponent implements OnInit {
     this.editingPatient = patient;
     this.patientForm.patchValue({
       name: patient.name,
-      cpf: patient.cpf
+      cpf: patient.cpf,
+      birthDate: patient.birthDate
     });
     this.showAddPatientModal = true;
   }
@@ -111,7 +125,8 @@ export class PatientQueueComponent implements OnInit {
     
     const patientData = {
       name: this.f['name'].value,
-      cpf: this.f['cpf'].value
+      cpf: this.f['cpf'].value,
+      birthDate: this.f['birthDate'].value
     };
     
     const operation = this.editingPatient 

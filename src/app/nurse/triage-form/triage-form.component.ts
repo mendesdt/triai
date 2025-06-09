@@ -21,6 +21,7 @@ export class TriageFormComponent implements OnInit {
   triageId: string | null = null;
   pendingPatientId: string | null = null;
   public noAllergiesChecked = false;
+  selectedSymptoms: string[] = [];
   
   symptoms = [
     { id: 'fever', name: 'Febre' },
@@ -38,6 +39,12 @@ export class TriageFormComponent implements OnInit {
   intensityOptions = [
     { value: 'Leve', label: 'Leve' },
     { value: 'Moderada', label: 'Moderada' },
+    { value: 'Alta', label: 'Alta' }
+  ];
+
+  priorityOptions = [
+    { value: 'Baixa', label: 'Baixa' },
+    { value: 'Média', label: 'Média' },
     { value: 'Alta', label: 'Alta' }
   ];
 
@@ -61,10 +68,10 @@ export class TriageFormComponent implements OnInit {
       birthDate: ['', Validators.required],
       motherName: [''],
       consultReason: ['', Validators.required],
-      symptoms: this.formBuilder.array([]),
       otherSymptoms: [''],
       duration: ['', Validators.required],
       intensity: ['Leve', Validators.required],
+      priority: ['Baixa', Validators.required],
       medications: [''],
       allergies: [''],
       // Vital Signs
@@ -75,6 +82,18 @@ export class TriageFormComponent implements OnInit {
       bloodPressureDiastolic: [''],
       oxygenSaturation: ['']
     });
+  }
+
+  applyCpfMask(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    
+    if (value.length <= 11) {
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    
+    this.triageForm.patchValue({ cpf: value });
   }
 
   checkRouteParams(): void {
@@ -93,7 +112,8 @@ export class TriageFormComponent implements OnInit {
         this.pendingPatientId = params['pendingId'];
         this.triageForm.patchValue({
           name: params['name'] || '',
-          cpf: params['cpf'] || ''
+          cpf: params['cpf'] || '',
+          birthDate: params['birthDate'] || ''
         });
       }
     });
@@ -114,6 +134,7 @@ export class TriageFormComponent implements OnInit {
                 otherSymptoms: triage.otherSymptoms,
                 duration: triage.duration,
                 intensity: triage.intensity,
+                priority: triage.priority,
                 medications: triage.medications,
                 allergies: triage.allergies,
                 heartRate: triage.vitalSigns?.heartRate,
@@ -124,18 +145,8 @@ export class TriageFormComponent implements OnInit {
                 oxygenSaturation: triage.vitalSigns?.oxygenSaturation
               });
               
-              // Set symptoms checkboxes
-              this.triageForm.get('symptoms')?.setValue(triage.symptoms);
-              
-              // Update checkboxes in the UI
-              setTimeout(() => {
-                triage.symptoms.forEach(symptom => {
-                  const checkbox = document.querySelector(`input[value="${symptom}"]`) as HTMLInputElement;
-                  if (checkbox) {
-                    checkbox.checked = true;
-                  }
-                });
-              });
+              // Set symptoms
+              this.selectedSymptoms = triage.symptoms || [];
             }
           },
           error: (error) => {
@@ -148,18 +159,14 @@ export class TriageFormComponent implements OnInit {
   get f() { return this.triageForm.controls; }
 
   onCheckboxChange(event: any): void {
-    const symptomsArray = this.triageForm.get('symptoms')?.value || [];
-    
     if (event.target.checked) {
-      symptomsArray.push(event.target.value);
+      this.selectedSymptoms.push(event.target.value);
     } else {
-      const index = symptomsArray.indexOf(event.target.value);
+      const index = this.selectedSymptoms.indexOf(event.target.value);
       if (index !== -1) {
-        symptomsArray.splice(index, 1);
+        this.selectedSymptoms.splice(index, 1);
       }
     }
-    
-    this.triageForm.get('symptoms')?.setValue(symptomsArray);
   }
 
   public onNoAllergiesChange(event: any): void {
@@ -188,10 +195,11 @@ export class TriageFormComponent implements OnInit {
       birthDate: formValues.birthDate,
       motherName: formValues.motherName,
       consultReason: formValues.consultReason,
-      symptoms: formValues.symptoms,
+      symptoms: this.selectedSymptoms,
       otherSymptoms: formValues.otherSymptoms,
       duration: formValues.duration,
       intensity: formValues.intensity,
+      priority: formValues.priority,
       medications: formValues.medications,
       allergies: formValues.allergies,
       vitalSigns: {

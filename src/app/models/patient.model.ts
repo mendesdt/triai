@@ -60,6 +60,7 @@ export interface PendingPatient {
   id: string;
   name: string;
   cpf: string;
+  birthDate?: string;
   arrivalTime: string;
   entryDate: string;
   status: 'waiting' | 'in-triage';

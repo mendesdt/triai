@@ -42,6 +42,7 @@
             <th>Posição</th>
             <th>Nome do Paciente</th>
             <th>CPF</th>
+            <th>Data de Nascimento</th>
             <th>Horário de Entrada</th>
             <th>Status</th>
             <th>Ações</th>
@@ -55,10 +56,12 @@
               </td>
               <td>
                 <div class="patient-info">
+                  <span class="material-icons" style="margin-right: 8px; color: var(--primary);">person</span>
                   <span class="patient-name">{{ patient.name }}</span>
                 </div>
               </td>
               <td>{{ patient.cpf }}</td>
+              <td>{{ patient.birthDate | date:'dd/MM/yyyy' }}</td>
               <td>{{ patient.arrivalTime }}</td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusClass(patient.status)">
@@ -77,14 +80,14 @@
               </td>
             </tr>
             <tr *ngIf="filteredPatients.length === 0">
-              <td colspan="6" class="no-data">
+              <td colspan="7" class="no-data">
                 Nenhum paciente na fila de triagem.
               </td>
             </tr>
           </ng-container>
           <ng-template #loadingTemplate>
             <tr>
-              <td colspan="6" class="loading">
+              <td colspan="7" class="loading">
                 <div class="spinner"></div>
                 Carregando fila de triagem...
               </td>
@@ -145,9 +148,27 @@
             class="form-control" 
             [ngClass]="{ 'is-invalid': submitted && f['cpf'].errors }"
             placeholder="000.000.000-00"
+            (input)="applyCpfMask($event)"
+            maxlength="14"
           />
           <div *ngIf="submitted && f['cpf'].errors" class="invalid-feedback">
             <div *ngIf="f['cpf'].errors['required']">CPF é obrigatório</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="material-icons">calendar_today</span>
+            Data de Nascimento
+          </label>
+          <input 
+            type="date" 
+            formControlName="birthDate" 
+            class="form-control" 
+            [ngClass]="{ 'is-invalid': submitted && f['birthDate'].errors }"
+          />
+          <div *ngIf="submitted && f['birthDate'].errors" class="invalid-feedback">
+            <div *ngIf="f['birthDate'].errors['required']">Data de nascimento é obrigatória</div>
           </div>
         </div>
 

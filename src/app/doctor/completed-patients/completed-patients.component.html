@@ -50,9 +50,7 @@
             <tr *ngFor="let patient of filteredPatients">
               <td>
                 <div class="patient-info">
-                  <div class="patient-avatar">
-                    <img [src]="patient.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
-                  </div>
+                  <span class="material-icons" style="margin-right: 8px; color: var(--primary);">person</span>
                   <span class="patient-name">{{ patient.name }}</span>
                 </div>
               </td>
@@ -116,7 +114,7 @@
       <div class="patient-summary">
         <div class="patient-info-header">
           <div class="patient-avatar-large">
-            <img [src]="selectedPatient.photo || 'https://i.pravatar.cc/150?img=1'" alt="Avatar">
+            <span class="material-icons" style="font-size: 64px; color: var(--primary);">person</span>
           </div>
           <div class="patient-details">
             <h2>{{ selectedPatient.name }}</h2>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, map, catchError } from 'rxjs';
+import { Observable, from, map, catchError, of } from 'rxjs';
 import { 
   collection, 
   addDoc, 
@@ -37,6 +37,7 @@ export class ReceptionService {
             id: doc.id,
             name: data['name'],
             cpf: data['cpf'],
+            birthDate: data['birthDate'],
             arrivalTime: data['arrivalTime'],
             entryDate: data['entryDate'],
             status: data['status'] || 'waiting'
@@ -46,7 +47,7 @@ export class ReceptionService {
       }),
       catchError(error => {
         console.error('Erro ao buscar pacientes:', error);
-        return [];
+        return of([]);
       })
     );
   }
@@ -56,6 +57,7 @@ export class ReceptionService {
     const newPatient = {
       name: patientData.name || '',
       cpf: patientData.cpf || '',
+      birthDate: patientData.birthDate || '',
       arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       entryDate: now.toISOString().split('T')[0],
       status: 'waiting',
@@ -67,6 +69,7 @@ export class ReceptionService {
         id: docRef.id,
         name: newPatient.name,
         cpf: newPatient.cpf,
+        birthDate: newPatient.birthDate,
         arrivalTime: newPatient.arrivalTime,
         entryDate: newPatient.entryDate,
         status: newPatient.status
@@ -84,12 +87,14 @@ export class ReceptionService {
     return from(updateDoc(patientRef, {
       name: patientData.name,
       cpf: patientData.cpf,
+      birthDate: patientData.birthDate,
       updatedAt: Timestamp.fromDate(new Date())
     })).pipe(
       map(() => ({
         id,
         name: patientData.name || '',
         cpf: patientData.cpf || '',
+        birthDate: patientData.birthDate || '',
         arrivalTime: patientData.arrivalTime || '',
         entryDate: patientData.entryDate || '',
         status: patientData.status || 'waiting'
@@ -108,7 +113,7 @@ export class ReceptionService {
       map(() => true),
       catchError(error => {
         console.error('Erro ao remover paciente:', error);
-        return [false];
+        return of(false);
       })
     );
   }
@@ -123,7 +128,7 @@ export class ReceptionService {
       map(() => true),
       catchError(error => {
         console.error('Erro ao atualizar status do paciente:', error);
-        return [false];
+        return of(false);
       })
     );
   }
