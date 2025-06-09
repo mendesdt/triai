@@ -25,6 +25,9 @@ export interface Patient {
   triageStatus?: 'pending' | 'in-progress' | 'completed';
   createdAt?: any;
   updatedAt?: any;
+  // New fields for AI analysis
+  aiHypotheses?: AIHypothesis[];
+  aiAlerts?: AIAlert[];
 }
 
 export interface VitalSigns {
@@ -34,6 +37,17 @@ export interface VitalSigns {
   bloodPressureSystolic?: number; // mmHg
   bloodPressureDiastolic?: number; // mmHg
   oxygenSaturation?: number; // %
+}
+
+export interface AIHypothesis {
+  probability: string;
+  illness: string;
+  details: string;
+}
+
+export interface AIAlert {
+  alert: string;
+  reason: string;
 }
 
 export interface PatientHistory {

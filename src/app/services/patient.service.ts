@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, map, catchError, of, switchMap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { 
   collection, 
   addDoc, 
@@ -13,7 +14,7 @@ import {
   getDoc 
 } from 'firebase/firestore';
 import { db } from '../config/firebase.config';
-import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert } from '../models/patient.model';
+import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert, AIHypothesis, AIAlert } from '../models/patient.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,8 @@ import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert } from '../m
 export class PatientService {
   private triagesCollection = 'triages';
   private completedTriagesCollection = 'completed-triages';
+  private aiAnalysisCollection = 'ai-analysis';
+  private externalApiUrl = 'https://us-central1-triai-dev-462420.cloudfunctions.net/triageAnalysis';
 
   // Mock data for demonstration (will be replaced by Firebase)
   private patientHistories: { [key: string]: PatientHistory[] } = {
@@ -83,7 +86,73 @@ export class PatientService {
     ]
   };
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
+
+  // Call external API for AI analysis
+  private callExternalAPI(triageData: any): Observable<any> {
+    const apiPayload = {
+      birthDate: triageData.birthDate,
+      consultReason: triageData.consultReason,
+      symptoms: triageData.symptoms,
+      otherSymptoms: triageData.otherSymptoms,
+      duration: triageData.duration,
+      intensity: triageData.intensity,
+      medications: triageData.medications,
+      allergies: triageData.allergies,
+      vitalSigns: {
+        temperature: triageData.vitalSigns?.temperature,
+        bloodPressure: triageData.vitalSigns?.bloodPressureSystolic && triageData.vitalSigns?.bloodPressureDiastolic 
+          ? `${triageData.vitalSigns.bloodPressureSystolic}x${triageData.vitalSigns.bloodPressureDiastolic}`
+          : undefined,
+        heartRate: triageData.vitalSigns?.heartRate,
+        respiratoryRate: triageData.vitalSigns?.respiratoryRate
+      },
+      priority: triageData.priority,
+      arrivalTime: triageData.arrivalTime
+    };
+
+    return this.http.post(this.externalApiUrl, apiPayload);
+  }
+
+  // Save AI analysis to Firebase
+  private saveAIAnalysis(patientId: string, analysisData: any): Observable<any> {
+    const analysisDoc = {
+      patientId,
+      hypotheses: analysisData.hypotheses || [],
+      alerts: analysisData.alerts || [],
+      createdAt: Timestamp.fromDate(new Date())
+    };
+
+    return from(addDoc(collection(db, this.aiAnalysisCollection), analysisDoc));
+  }
+
+  // Get AI analysis for a patient
+  getAIAnalysis(patientId: string): Observable<{ hypotheses: AIHypothesis[], alerts: AIAlert[] }> {
+    const q = query(
+      collection(db, this.aiAnalysisCollection),
+      orderBy('createdAt', 'desc')
+    );
+
+    return from(getDocs(q)).pipe(
+      map(querySnapshot => {
+        let analysis = { hypotheses: [], alerts: [] };
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data['patientId'] === patientId) {
+            analysis = {
+              hypotheses: data['hypotheses'] || [],
+              alerts: data['alerts'] || []
+            };
+          }
+        });
+        return analysis;
+      }),
+      catchError(error => {
+        console.error('Erro ao buscar análise da IA:', error);
+        return of({ hypotheses: [], alerts: [] });
+      })
+    );
+  }
 
   // Triagens ativas (pacientes aguardando atendimento médico)
   getPatients(): Observable<Patient[]> {
@@ -121,14 +190,23 @@ export class PatientService {
     const docRef = doc(db, this.triagesCollection, id);
     
     return from(getDoc(docRef)).pipe(
-      map(docSnap => {
+      switchMap(docSnap => {
         if (docSnap.exists()) {
-          return {
+          const patient = {
             id: docSnap.id,
             ...docSnap.data()
           } as Patient;
+
+          // Get AI analysis for this patient
+          return this.getAIAnalysis(id).pipe(
+            map(analysis => ({
+              ...patient,
+              aiHypotheses: analysis.hypotheses,
+              aiAlerts: analysis.alerts
+            }))
+          );
         }
-        return undefined;
+        return of(undefined);
       }),
       catchError(error => {
         console.error('Erro ao buscar triagem:', error);
@@ -154,7 +232,7 @@ export class PatientService {
       medications: triageData.medications || '',
       allergies: triageData.allergies || '',
       vitalSigns: triageData.vitalSigns || {},
-      priority: triageData.priority || 'Baixa', // Usar a prioridade selecionada pela enfermeira
+      priority: triageData.priority || 'Baixa',
       arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       triageStatus: 'completed',
       createdAt: Timestamp.fromDate(now),
@@ -162,10 +240,27 @@ export class PatientService {
     };
 
     return from(addDoc(collection(db, this.triagesCollection), newTriage)).pipe(
-      map(docRef => ({
-        id: docRef.id,
-        ...newTriage
-      } as Patient)),
+      switchMap(docRef => {
+        const patientWithId = {
+          id: docRef.id,
+          ...newTriage
+        } as Patient;
+
+        // Call external API for AI analysis
+        return this.callExternalAPI(patientWithId).pipe(
+          switchMap(analysisResult => {
+            // Save AI analysis to Firebase
+            return this.saveAIAnalysis(docRef.id, analysisResult).pipe(
+              map(() => patientWithId)
+            );
+          }),
+          catchError(apiError => {
+            console.error('Erro na API externa:', apiError);
+            // Return patient data even if API fails
+            return of(patientWithId);
+          })
+        );
+      }),
       catchError(error => {
         console.error('Erro ao registrar triagem:', error);
         throw error;
@@ -183,10 +278,26 @@ export class PatientService {
     };
 
     return from(updateDoc(triageRef, updateData)).pipe(
-      map(() => ({
-        id,
-        ...updateData
-      } as Patient)),
+      switchMap(() => {
+        const updatedPatient = {
+          id,
+          ...updateData
+        } as Patient;
+
+        // Call external API for updated analysis
+        return this.callExternalAPI(updatedPatient).pipe(
+          switchMap(analysisResult => {
+            // Save updated AI analysis
+            return this.saveAIAnalysis(id, analysisResult).pipe(
+              map(() => updatedPatient)
+            );
+          }),
+          catchError(apiError => {
+            console.error('Erro na API externa:', apiError);
+            return of(updatedPatient);
+          })
+        );
+      }),
       catchError(error => {
         console.error('Erro ao atualizar triagem:', error);
         throw error;
@@ -318,21 +429,23 @@ export class PatientService {
   }
 
   getClinicalHypotheses(patientId: string): Observable<ClinicalHypothesis[]> {
-    const hypotheses: ClinicalHypothesis[] = [
-      { description: 'Doença viral aguda (Dengue possível)' },
-      { description: 'Infecção viral inespecífica' },
-      { description: 'Febre Chikungunya (menos provável)' }
-    ];
-    
-    return of(hypotheses);
+    return this.getAIAnalysis(patientId).pipe(
+      map(analysis => 
+        analysis.hypotheses.map(h => ({
+          description: `${h.illness} (${h.probability}): ${h.details}`
+        }))
+      )
+    );
   }
 
   getClinicalAlerts(patientId: string): Observable<ClinicalAlert[]> {
-    const alerts: ClinicalAlert[] = [
-      { description: 'Suspeita de Dengue', type: 'danger' },
-      { description: 'Monitorar sinais de desidratação', type: 'warning' }
-    ];
-    
-    return of(alerts);
+    return this.getAIAnalysis(patientId).pipe(
+      map(analysis => 
+        analysis.alerts.map(a => ({
+          description: a.alert,
+          type: 'warning' as const
+        }))
+      )
+    );
   }
 }

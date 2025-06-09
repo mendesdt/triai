@@ -76,7 +76,7 @@ export class TriageFormComponent implements OnInit {
       otherSymptoms: [''],
       duration: ['', Validators.required],
       intensity: ['Leve', Validators.required],
-      priority: ['Baixa', Validators.required], // Enfermeira deve selecionar
+      priority: ['Baixa', Validators.required],
       medications: [''],
       allergies: [''],
       // Vital Signs
@@ -119,7 +119,7 @@ export class TriageFormComponent implements OnInit {
           name: params['name'] || '',
           cpf: params['cpf'] || '',
           birthDate: params['birthDate'] || this.triageForm.get('birthDate')?.value,
-          motherName: params['motherName'] || '' // Pré-preencher nome da mãe
+          motherName: params['motherName'] || ''
         });
       }
     });
@@ -188,6 +188,13 @@ export class TriageFormComponent implements OnInit {
     this.submitted = true;
     
     if (this.triageForm.invalid) {
+      console.log('Form is invalid:', this.triageForm.errors);
+      Object.keys(this.triageForm.controls).forEach(key => {
+        const control = this.triageForm.get(key);
+        if (control && control.invalid) {
+          console.log(`${key} is invalid:`, control.errors);
+        }
+      });
       return;
     }
     
@@ -205,7 +212,7 @@ export class TriageFormComponent implements OnInit {
       otherSymptoms: formValues.otherSymptoms,
       duration: formValues.duration,
       intensity: formValues.intensity,
-      priority: formValues.priority, // Usar a prioridade selecionada pela enfermeira
+      priority: formValues.priority,
       medications: formValues.medications,
       allergies: formValues.allergies,
       vitalSigns: {
@@ -225,9 +232,6 @@ export class TriageFormComponent implements OnInit {
     operation.subscribe({
       next: (result) => {
         console.log('Triagem salva com sucesso:', result);
-        
-        // Chamar API externa aqui se necessário
-        this.callExternalAPI(result);
         
         // If this was from a pending patient, remove from pending list ONLY after successful triage registration
         if (this.pendingPatientId) {
@@ -251,18 +255,6 @@ export class TriageFormComponent implements OnInit {
         alert('Erro ao salvar triagem. Tente novamente.');
       }
     });
-  }
-
-  // Método para chamar API externa
-  private callExternalAPI(triageData: any): void {
-    // Aqui você pode chamar sua API externa
-    console.log('Dados da triagem para API externa:', triageData);
-    
-    // Exemplo de como seria a chamada:
-    // this.http.post('https://sua-api.com/triages', triageData).subscribe({
-    //   next: (response) => console.log('API externa chamada com sucesso:', response),
-    //   error: (error) => console.error('Erro ao chamar API externa:', error)
-    // });
   }
 
   completeTriageProcess(): void {

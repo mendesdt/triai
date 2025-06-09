@@ -76,29 +76,35 @@ export class PatientSummaryComponent implements OnInit {
   }
 
   loadClinicalData(): void {
-    // Load clinical hypotheses
-    this.patientService.getClinicalHypotheses(this.patientId)
-      .subscribe({
-        next: (hypotheses) => {
-          this.clinicalHypotheses = hypotheses;
-        },
-        error: (error) => {
-          console.error('Error fetching clinical hypotheses:', error);
-        }
-      });
+    // Load clinical hypotheses (fallback if no AI data)
+    if (!this.patient?.aiHypotheses || this.patient.aiHypotheses.length === 0) {
+      this.patientService.getClinicalHypotheses(this.patientId)
+        .subscribe({
+          next: (hypotheses) => {
+            this.clinicalHypotheses = hypotheses;
+          },
+          error: (error) => {
+            console.error('Error fetching clinical hypotheses:', error);
+          }
+        });
+    }
     
-    // Load clinical alerts
-    this.patientService.getClinicalAlerts(this.patientId)
-      .subscribe({
-        next: (alerts) => {
-          this.clinicalAlerts = alerts;
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error fetching clinical alerts:', error);
-          this.loading = false;
-        }
-      });
+    // Load clinical alerts (fallback if no AI data)
+    if (!this.patient?.aiAlerts || this.patient.aiAlerts.length === 0) {
+      this.patientService.getClinicalAlerts(this.patientId)
+        .subscribe({
+          next: (alerts) => {
+            this.clinicalAlerts = alerts;
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching clinical alerts:', error);
+            this.loading = false;
+          }
+        });
+    } else {
+      this.loading = false;
+    }
   }
 
   goBack(): void {
@@ -160,16 +166,43 @@ export class PatientSummaryComponent implements OnInit {
     });
   }
 
+  getProbabilityClass(probability: string): string {
+    switch (probability.toLowerCase()) {
+      case 'provável':
+        return 'probability-provavel';
+      case 'possível':
+        return 'probability-possivel';
+      case 'menos provável':
+        return 'probability-menos-provavel';
+      default:
+        return 'probability-possivel';
+    }
+  }
+
   private generateMedicalNotes(): void {
     if (!this.patient) return;
     
-    this.medicalNotes = `Paciente: ${this.patient.name}, ${this.getAge(this.patient.birthDate)} anos, CPF ${this.patient.cpf}
+    let notes = `Paciente: ${this.patient.name}, ${this.getAge(this.patient.birthDate)} anos, CPF ${this.patient.cpf}
 Motivo da consulta: ${this.patient.consultReason || 'Febre alta persistente e dores no corpo há ' + this.patient.duration}.
 Sintomas: ${this.patient.symptoms.join(', ')}${this.patient.otherSymptoms ? ', ' + this.patient.otherSymptoms : ''}.
 Início: ${this.patient.duration} atrás. Intensidade: ${this.patient.intensity.toLowerCase()}. Evolução: piora progressiva.
-Medicamentos: ${this.patient.medications || 'Nenhum medicamento relatado'}.
-Hipóteses clínicas sugeridas: ${this.clinicalHypotheses.map(h => h.description).join(', ')}.
-Alertas: ${this.clinicalAlerts.map(a => a.description).join(', ')}.`;
+Medicamentos: ${this.patient.medications || 'Nenhum medicamento relatado'}.`;
+
+    // Add AI hypotheses if available
+    if (this.patient.aiHypotheses && this.patient.aiHypotheses.length > 0) {
+      notes += `\nHipóteses clínicas (IA): ${this.patient.aiHypotheses.map(h => `${h.illness} (${h.probability})`).join(', ')}.`;
+    } else if (this.clinicalHypotheses.length > 0) {
+      notes += `\nHipóteses clínicas sugeridas: ${this.clinicalHypotheses.map(h => h.description).join(', ')}.`;
+    }
+
+    // Add AI alerts if available
+    if (this.patient.aiAlerts && this.patient.aiAlerts.length > 0) {
+      notes += `\nAlertas: ${this.patient.aiAlerts.map(a => a.alert).join(', ')}.`;
+    } else if (this.clinicalAlerts.length > 0) {
+      notes += `\nAlertas: ${this.clinicalAlerts.map(a => a.description).join(', ')}.`;
+    }
+
+    this.medicalNotes = notes;
   }
 
   public getAge(birthDate: string): number {

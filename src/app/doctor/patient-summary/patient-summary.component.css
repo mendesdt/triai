@@ -311,6 +311,62 @@
   margin-bottom: 0;
 }
 
+/* AI Hypotheses Styles */
+.ai-hypotheses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hypothesis-item {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: #F8F9FA;
+}
+
+.hypothesis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.hypothesis-illness {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.hypothesis-probability {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.hypothesis-probability.probability-provavel {
+  background-color: #FFEBEE;
+  color: var(--error);
+}
+
+.hypothesis-probability.probability-possivel {
+  background-color: #FFF8E1;
+  color: var(--warning);
+}
+
+.hypothesis-probability.probability-menos-provavel {
+  background-color: #E8F5E9;
+  color: var(--success);
+}
+
+.hypothesis-details {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .alerts-card .card-title {
   background-color: #FFEBEE;
   color: var(--error);
@@ -341,6 +397,19 @@
 
 .alert-item .material-icons {
   font-size: 20px;
+}
+
+.alert-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.alert-content p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 8px;
 }
 
 .notes-section {
