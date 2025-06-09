@@ -3,7 +3,7 @@ export interface Patient {
   name: string;
   photo?: string;
   cpf: string;
-  birthDate: string;
+  birthDate?: string;
   arrivalTime: string;
   completedTime?: string;
   priority: 'Alta' | 'Média' | 'Baixa' | 'Não triado';
