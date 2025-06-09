@@ -1,9 +1,6 @@
-export const mongoConfig = {
-  connectionString: 'mongodb+srv://guilherme:xdyyAdbBM3YkQKCm@cluster0.l2eedl4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-  databaseName: 'healthcare-triage',
-  collections: {
-    pacientesNaFila: 'pacientesNaFila',
-    triagens: 'triagens',
-    atendimentos: 'atendimentos'
-  }
+// This file is no longer needed as we're using Supabase
+// Keeping for reference but can be removed
+export const supabaseConfig = {
+  url: 'YOUR_SUPABASE_URL',
+  anonKey: 'YOUR_SUPABASE_ANON_KEY'
 };

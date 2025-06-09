@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { PendingPatient } from '../models/patient.model';
-import { MongoDBService } from './mongodb.service';
+import { SupabaseService } from './supabase.service';
 
 export interface NewPatientInput {
   name: string;
@@ -12,37 +13,104 @@ export interface NewPatientInput {
   providedIn: 'root'
 })
 export class ReceptionService {
-  constructor(private mongoDBService: MongoDBService) {}
+  constructor(private supabase: SupabaseService) {}
 
   getPendingPatients(): Observable<PendingPatient[]> {
-    return this.mongoDBService.getPatientsInQueue();
+    return from(
+      this.supabase.select('pending_patients', '*')
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data || [];
+      }),
+      catchError(error => {
+        console.error('Error fetching pending patients:', error);
+        throw error;
+      })
+    );
   }
 
   addPendingPatient(patientData: NewPatientInput): Observable<any> {
-    const newPatient: Omit<PendingPatient, 'id'> = {
+    const newPatient = {
       name: patientData.name,
       cpf: patientData.cpf,
-      arrivalTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      entryDate: new Date().toISOString().split('T')[0],
-      status: 'waiting'
+      arrival_time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      entry_date: new Date().toISOString().split('T')[0],
+      status: 'waiting',
+      created_at: new Date().toISOString()
     };
     
-    return this.mongoDBService.addPatientToQueue(newPatient);
+    return from(
+      this.supabase.insert('pending_patients', newPatient)
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data;
+      }),
+      catchError(error => {
+        console.error('Error adding patient:', error);
+        throw error;
+      })
+    );
   }
 
   updatePendingPatient(id: string, patientData: Partial<PendingPatient>): Observable<any> {
-    return this.mongoDBService.updatePatient(id, patientData);
+    return from(
+      this.supabase.update('pending_patients', id, patientData)
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data;
+      }),
+      catchError(error => {
+        console.error('Error updating patient:', error);
+        throw error;
+      })
+    );
   }
 
   removePendingPatient(id: string): Observable<any> {
-    return this.mongoDBService.removePatientFromQueue(id);
+    return from(
+      this.supabase.delete('pending_patients', id)
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data;
+      }),
+      catchError(error => {
+        console.error('Error removing patient:', error);
+        throw error;
+      })
+    );
   }
 
   updatePatientStatus(id: string, status: 'waiting' | 'in-triage' | 'triaged'): Observable<any> {
-    return this.mongoDBService.updatePatientStatus(id, status);
+    return from(
+      this.supabase.update('pending_patients', id, { status })
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data;
+      }),
+      catchError(error => {
+        console.error('Error updating patient status:', error);
+        throw error;
+      })
+    );
   }
 
   getPatientsByStatus(status: 'waiting' | 'in-triage' | 'triaged'): Observable<PendingPatient[]> {
-    return this.mongoDBService.getPatientsByStatus(status);
+    return from(
+      this.supabase.select('pending_patients', '*', { status })
+    ).pipe(
+      map(response => {
+        if (response.error) throw response.error;
+        return response.data || [];
+      }),
+      catchError(error => {
+        console.error('Error fetching patients by status:', error);
+        throw error;
+      })
+    );
   }
 }
