@@ -83,15 +83,18 @@ export class PatientQueueComponent implements OnInit {
     this.showAddPatientModal = true;
   }
 
-  removePatient(id: number): void {
+  removePatient(id: string): void {
     if (confirm('Tem certeza que deseja remover este paciente da fila?')) {
       this.receptionService.removePendingPatient(id)
         .subscribe({
-          next: () => {
-            this.loadPendingPatients();
+          next: (success) => {
+            if (success) {
+              this.loadPendingPatients();
+            }
           },
           error: (error) => {
             console.error('Error removing patient:', error);
+            alert('Erro ao remover paciente. Tente novamente.');
           }
         });
     }
@@ -124,6 +127,7 @@ export class PatientQueueComponent implements OnInit {
       error: (error) => {
         console.error('Error saving patient:', error);
         this.loading = false;
+        alert('Erro ao salvar paciente. Tente novamente.');
       }
     });
   }

@@ -19,7 +19,7 @@ export class TriageFormComponent implements OnInit {
   success = false;
   isEditMode = false;
   triageId: number | null = null;
-  pendingPatientId: number | null = null;
+  pendingPatientId: string | null = null;
   public noAllergiesChecked = false;
   
   symptoms = [
@@ -90,7 +90,7 @@ export class TriageFormComponent implements OnInit {
     // Check for pending patient data
     this.route.queryParams.subscribe(params => {
       if (params['pendingId']) {
-        this.pendingPatientId = +params['pendingId'];
+        this.pendingPatientId = params['pendingId'];
         this.triageForm.patchValue({
           name: params['name'] || '',
           cpf: params['cpf'] || ''

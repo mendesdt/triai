@@ -1,83 +1,130 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Observable, from, map, catchError } from 'rxjs';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  doc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  orderBy,
+  Timestamp 
+} from 'firebase/firestore';
+import { db } from '../config/firebase.config';
 import { PendingPatient } from '../models/patient.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReceptionService {
-  private pendingPatients: PendingPatient[] = [
-    {
-      id: 1,
-      name: 'Carlos Eduardo Santos',
-      cpf: '123.456.789-01',
-      arrivalTime: '08:30',
-      entryDate: '2024-11-25',
-      status: 'waiting'
-    },
-    {
-      id: 2,
-      name: 'Fernanda Silva Costa',
-      cpf: '987.654.321-09',
-      arrivalTime: '08:45',
-      entryDate: '2024-11-25',
-      status: 'waiting'
-    },
-    {
-      id: 3,
-      name: 'Roberto Oliveira Lima',
-      cpf: '456.789.123-45',
-      arrivalTime: '09:00',
-      entryDate: '2024-11-25',
-      status: 'in-triage'
-    }
-  ];
+  private collectionName = 'pending-patients';
 
   constructor() {}
 
   getPendingPatients(): Observable<PendingPatient[]> {
-    return of(this.pendingPatients).pipe(delay(500));
+    const q = query(
+      collection(db, this.collectionName), 
+      orderBy('createdAt', 'asc')
+    );
+    
+    return from(getDocs(q)).pipe(
+      map(querySnapshot => {
+        const patients: PendingPatient[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          patients.push({
+            id: doc.id,
+            name: data['name'],
+            cpf: data['cpf'],
+            arrivalTime: data['arrivalTime'],
+            entryDate: data['entryDate'],
+            status: data['status'] || 'waiting'
+          } as PendingPatient);
+        });
+        return patients;
+      }),
+      catchError(error => {
+        console.error('Erro ao buscar pacientes:', error);
+        return [];
+      })
+    );
   }
 
   addPendingPatient(patientData: Partial<PendingPatient>): Observable<PendingPatient> {
-    const newPatient: PendingPatient = {
-      id: this.pendingPatients.length + 1,
+    const now = new Date();
+    const newPatient = {
       name: patientData.name || '',
       cpf: patientData.cpf || '',
-      arrivalTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      entryDate: new Date().toISOString().split('T')[0],
-      status: 'waiting'
+      arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      entryDate: now.toISOString().split('T')[0],
+      status: 'waiting',
+      createdAt: Timestamp.fromDate(now)
     };
+
+    return from(addDoc(collection(db, this.collectionName), newPatient)).pipe(
+      map(docRef => ({
+        id: docRef.id,
+        name: newPatient.name,
+        cpf: newPatient.cpf,
+        arrivalTime: newPatient.arrivalTime,
+        entryDate: newPatient.entryDate,
+        status: newPatient.status
+      } as PendingPatient)),
+      catchError(error => {
+        console.error('Erro ao adicionar paciente:', error);
+        throw error;
+      })
+    );
+  }
+
+  updatePendingPatient(id: string, patientData: Partial<PendingPatient>): Observable<PendingPatient> {
+    const patientRef = doc(db, this.collectionName, id);
     
-    this.pendingPatients.push(newPatient);
-    return of(newPatient).pipe(delay(500));
+    return from(updateDoc(patientRef, {
+      name: patientData.name,
+      cpf: patientData.cpf,
+      updatedAt: Timestamp.fromDate(new Date())
+    })).pipe(
+      map(() => ({
+        id,
+        name: patientData.name || '',
+        cpf: patientData.cpf || '',
+        arrivalTime: patientData.arrivalTime || '',
+        entryDate: patientData.entryDate || '',
+        status: patientData.status || 'waiting'
+      } as PendingPatient)),
+      catchError(error => {
+        console.error('Erro ao atualizar paciente:', error);
+        throw error;
+      })
+    );
   }
 
-  updatePendingPatient(id: number, patientData: Partial<PendingPatient>): Observable<PendingPatient> {
-    const index = this.pendingPatients.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.pendingPatients[index] = { ...this.pendingPatients[index], ...patientData };
-      return of(this.pendingPatients[index]).pipe(delay(500));
-    }
-    throw new Error('Patient not found');
+  removePendingPatient(id: string): Observable<boolean> {
+    const patientRef = doc(db, this.collectionName, id);
+    
+    return from(deleteDoc(patientRef)).pipe(
+      map(() => true),
+      catchError(error => {
+        console.error('Erro ao remover paciente:', error);
+        return [false];
+      })
+    );
   }
 
-  removePendingPatient(id: number): Observable<boolean> {
-    const index = this.pendingPatients.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.pendingPatients.splice(index, 1);
-      return of(true).pipe(delay(500));
-    }
-    return of(false).pipe(delay(500));
-  }
-
-  updatePatientStatus(id: number, status: 'waiting' | 'in-triage'): Observable<boolean> {
-    const patient = this.pendingPatients.find(p => p.id === id);
-    if (patient) {
-      patient.status = status;
-      return of(true).pipe(delay(300));
-    }
-    return of(false).pipe(delay(300));
+  updatePatientStatus(id: string, status: 'waiting' | 'in-triage'): Observable<boolean> {
+    const patientRef = doc(db, this.collectionName, id);
+    
+    return from(updateDoc(patientRef, {
+      status,
+      updatedAt: Timestamp.fromDate(new Date())
+    })).pipe(
+      map(() => true),
+      catchError(error => {
+        console.error('Erro ao atualizar status do paciente:', error);
+        return [false];
+      })
+    );
   }
 }

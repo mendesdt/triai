@@ -55,7 +55,7 @@ export interface ClinicalAlert {
 }
 
 export interface PendingPatient {
-  id: number;
+  id: string;
   name: string;
   cpf: string;
   arrivalTime: string;
