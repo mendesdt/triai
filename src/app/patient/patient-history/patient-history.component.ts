@@ -13,7 +13,7 @@ import { PatientService } from '../../services/patient.service';
   imports: [CommonModule, RouterModule, DatePipe]
 })
 export class PatientHistoryComponent implements OnInit {
-  patientId!: number;
+  patientId!: string;
   patient: Patient | null = null;
   patientHistory: PatientHistory[] = [];
   selectedRecord: PatientHistory | null = null;
@@ -27,7 +27,7 @@ export class PatientHistoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.patientId = +params['id'];
+      this.patientId = params['id'];
       this.loadData();
     });
   }

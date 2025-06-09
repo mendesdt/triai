@@ -73,8 +73,10 @@ export class CompletedPatientsComponent implements OnInit {
     this.selectedPatient = patient;
   }
 
-  public viewPatientHistory(id: number): void {
-    this.router.navigate(['/patient', id, 'history']);
+  public viewPatientHistory(id: string | undefined): void {
+    if (id) {
+      this.router.navigate(['/patient', id, 'history']);
+    }
   }
 
   closeDetails(): void {

@@ -63,9 +63,7 @@ export class PatientSummaryComponent implements OnInit {
   }
 
   checkPatientHistory(): void {
-    // Convert string ID to number for compatibility with existing method
-    const numericId = parseInt(this.patientId) || 1;
-    this.patientService.getPatientHistory(numericId)
+    this.patientService.getPatientHistory(this.patientId)
       .subscribe({
         next: (history) => {
           this.hasPatientHistory = history.length > 0;
@@ -78,11 +76,8 @@ export class PatientSummaryComponent implements OnInit {
   }
 
   loadClinicalData(): void {
-    // Convert string ID to number for compatibility with existing methods
-    const numericId = parseInt(this.patientId) || 1;
-    
     // Load clinical hypotheses
-    this.patientService.getClinicalHypotheses(numericId)
+    this.patientService.getClinicalHypotheses(this.patientId)
       .subscribe({
         next: (hypotheses) => {
           this.clinicalHypotheses = hypotheses;
@@ -93,7 +88,7 @@ export class PatientSummaryComponent implements OnInit {
       });
     
     // Load clinical alerts
-    this.patientService.getClinicalAlerts(numericId)
+    this.patientService.getClinicalAlerts(this.patientId)
       .subscribe({
         next: (alerts) => {
           this.clinicalAlerts = alerts;

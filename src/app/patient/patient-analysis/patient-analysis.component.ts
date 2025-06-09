@@ -38,7 +38,7 @@ interface AIAnalysis {
   imports: [CommonModule, RouterModule]
 })
 export class PatientAnalysisComponent implements OnInit {
-  patientId!: number;
+  patientId!: string;
   patient: Patient | null = null;
   analysis: AIAnalysis | null = null;
   loading = true;
@@ -51,7 +51,7 @@ export class PatientAnalysisComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.patientId = +params['id'];
+      this.patientId = params['id'];
       this.loadData();
     });
   }

@@ -284,15 +284,17 @@ export class PatientService {
   }
 
   // Métodos mock para compatibilidade (serão implementados posteriormente)
-  getPatientById(id: number): Observable<Patient | undefined> {
-    return this.getTriageById(id.toString());
+  getPatientById(id: string): Observable<Patient | undefined> {
+    return this.getTriageById(id);
   }
 
-  getPatientHistory(patientId: number): Observable<PatientHistory[]> {
-    return of(this.patientHistories[patientId] || []);
+  getPatientHistory(patientId: string): Observable<PatientHistory[]> {
+    // Convert string ID to number for accessing mock data
+    const numericId = parseInt(patientId, 10);
+    return of(this.patientHistories[numericId] || []);
   }
 
-  getPatientAnalysis(patientId: number): Observable<any> {
+  getPatientAnalysis(patientId: string): Observable<any> {
     const analysis = {
       riskLevel: 'medium',
       riskScore: 65,
@@ -329,7 +331,7 @@ export class PatientService {
     return of(analysis);
   }
 
-  getClinicalHypotheses(patientId: number): Observable<ClinicalHypothesis[]> {
+  getClinicalHypotheses(patientId: string): Observable<ClinicalHypothesis[]> {
     const hypotheses: ClinicalHypothesis[] = [
       { description: 'Doença viral aguda (Dengue possível)' },
       { description: 'Infecção viral inespecífica' },
@@ -339,7 +341,7 @@ export class PatientService {
     return of(hypotheses);
   }
 
-  getClinicalAlerts(patientId: number): Observable<ClinicalAlert[]> {
+  getClinicalAlerts(patientId: string): Observable<ClinicalAlert[]> {
     const alerts: ClinicalAlert[] = [
       { description: 'Suspeita de Dengue', type: 'danger' },
       { description: 'Monitorar sinais de desidratação', type: 'warning' }
