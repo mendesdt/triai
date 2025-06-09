@@ -155,7 +155,7 @@ export class PatientSummaryComponent implements OnInit {
   private generateMedicalNotes(): void {
     if (!this.patient) return;
     
-    this.medicalNotes = `Paciente: ${this.patient.name}, ${this.getAge(this.patient.birthDate)} anos, CPF ${this.patient.cpf}
+    this.medicalNotes = `Paciente: ${this.patient.name}, ${this.getAge(this.patient.birthDate as string)} anos, CPF ${this.patient.cpf}
 Motivo da consulta: ${this.patient.consultReason || 'Febre alta persistente e dores no corpo há ' + this.patient.duration}.
 Sintomas: ${this.patient.symptoms.join(', ')}${this.patient.otherSymptoms ? ', ' + this.patient.otherSymptoms : ''}.
 Início: ${this.patient.duration} atrás. Intensidade: ${this.patient.intensity.toLowerCase()}. Evolução: piora progressiva.
