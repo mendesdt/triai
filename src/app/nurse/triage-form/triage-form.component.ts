@@ -62,10 +62,15 @@ export class TriageFormComponent implements OnInit {
   }
 
   initializeForm(): void {
+    // Pré-popular com data de nascimento padrão (hoje menos 30 anos)
+    const defaultBirthDate = new Date();
+    defaultBirthDate.setFullYear(defaultBirthDate.getFullYear() - 30);
+    const defaultBirthDateString = defaultBirthDate.toISOString().split('T')[0];
+
     this.triageForm = this.formBuilder.group({
       cpf: ['', [Validators.required, Validators.minLength(11)]],
       name: ['', Validators.required],
-      birthDate: ['', Validators.required],
+      birthDate: [defaultBirthDateString, Validators.required],
       motherName: [''],
       consultReason: ['', Validators.required],
       otherSymptoms: [''],
@@ -113,7 +118,7 @@ export class TriageFormComponent implements OnInit {
         this.triageForm.patchValue({
           name: params['name'] || '',
           cpf: params['cpf'] || '',
-          birthDate: params['birthDate'] || ''
+          birthDate: params['birthDate'] || this.triageForm.get('birthDate')?.value
         });
       }
     });
@@ -223,7 +228,7 @@ export class TriageFormComponent implements OnInit {
         // Chamar API externa aqui se necessário
         this.callExternalAPI(result);
         
-        // If this was from a pending patient, remove from pending list
+        // If this was from a pending patient, remove from pending list ONLY after successful triage registration
         if (this.pendingPatientId) {
           this.receptionService.removePendingPatient(this.pendingPatientId)
             .subscribe({
@@ -268,8 +273,8 @@ export class TriageFormComponent implements OnInit {
   }
 
   cancel(): void {
+    // Se veio de um paciente pendente, NÃO remove da lista, apenas volta o status para 'waiting'
     if (this.pendingPatientId) {
-      // Reset patient status back to waiting
       this.receptionService.updatePatientStatus(this.pendingPatientId, 'waiting')
         .subscribe({
           next: () => {
