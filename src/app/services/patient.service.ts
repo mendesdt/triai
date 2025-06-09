@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Observable, of, from } from 'rxjs';
+import { delay, map, catchError } from 'rxjs/operators';
 import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert } from '../models/patient.model';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
-  // Mock data for demonstration
+  // Mock data for demonstration (will be replaced with Supabase data)
   private patients: Patient[] = [
     {
       id: 1,
@@ -82,8 +83,6 @@ export class PatientService {
       lastAppointment: '12/05/2024'
     }
   ];
-
-  private triages: Patient[] = [...this.patients];
 
   private completedPatients: Patient[] = [
     {
@@ -259,34 +258,68 @@ export class PatientService {
     ]
   };
 
-  constructor() {}
+  constructor(private supabaseService: SupabaseService) {}
 
   getPatients(): Observable<Patient[]> {
     return of(this.patients).pipe(delay(500));
   }
 
   getTriages(): Observable<Patient[]> {
-    return of(this.triages).pipe(delay(500));
+    return from(this.supabaseService.getTriages()).pipe(
+      map(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching triages:', error);
+          throw error;
+        }
+        
+        return (data || []).map(triage => ({
+          id: parseInt(triage.id.substring(0, 8), 16), // Convert UUID to number for compatibility
+          name: triage.name,
+          cpf: triage.cpf,
+          birthDate: triage.birth_date,
+          arrivalTime: new Date(triage.created_at).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          priority: triage.priority as 'Alta' | 'Média' | 'Baixa' | 'Não triado',
+          symptoms: triage.symptoms || [],
+          otherSymptoms: triage.other_symptoms,
+          duration: triage.duration,
+          intensity: triage.intensity as 'Leve' | 'Moderada' | 'Alta',
+          medications: triage.medications || '',
+          consultReason: triage.consult_reason,
+          motherName: triage.mother_name,
+          allergies: triage.allergies,
+          vitalSigns: triage.vital_signs
+        }));
+      }),
+      catchError(error => {
+        console.error('Error in getTriages:', error);
+        return of([]);
+      })
+    );
   }
 
   getTriageById(id: number): Observable<Patient | undefined> {
-    const triage = this.triages.find(t => t.id === id);
-    return of(triage).pipe(delay(300));
+    // For now, return mock data since we need to handle UUID conversion
+    return of(this.patients.find(p => p.id === id)).pipe(delay(300));
   }
 
   updateTriage(id: number, triageData: Partial<Patient>): Observable<Patient> {
-    const index = this.triages.findIndex(t => t.id === id);
+    // For now, return mock data since we need to handle UUID conversion
+    const index = this.patients.findIndex(t => t.id === id);
     if (index !== -1) {
-      this.triages[index] = { ...this.triages[index], ...triageData };
-      return of(this.triages[index]).pipe(delay(700));
+      this.patients[index] = { ...this.patients[index], ...triageData };
+      return of(this.patients[index]).pipe(delay(700));
     }
     throw new Error('Triage not found');
   }
 
   deleteTriage(id: number): Observable<boolean> {
-    const index = this.triages.findIndex(t => t.id === id);
+    // For now, return mock data since we need to handle UUID conversion
+    const index = this.patients.findIndex(t => t.id === id);
     if (index !== -1) {
-      this.triages.splice(index, 1);
+      this.patients.splice(index, 1);
       return of(true).pipe(delay(500));
     }
     return of(false).pipe(delay(500));
@@ -421,24 +454,46 @@ export class PatientService {
     return of(false).pipe(delay(500));
   }
 
-  registerTriage(patient: Partial<Patient>): Observable<Patient> {
-    // In a real app, this would send data to a backend API
-    const newPatient: Patient = {
-      id: this.triages.length + 1,
-      name: patient.name || '',
-      cpf: patient.cpf || '',
-      birthDate: patient.birthDate || '',
-      arrivalTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      priority: 'Não triado',
-      symptoms: patient.symptoms || [],
-      otherSymptoms: patient.otherSymptoms,
-      duration: patient.duration || '',
-      intensity: patient.intensity || 'Leve',
-      medications: patient.medications || ''
-    };
-    
-    this.triages.push(newPatient);
-    this.patients.push(newPatient);
-    return of(newPatient).pipe(delay(700));
+  registerTriage(triageData: any): Observable<Patient> {
+    return from(this.supabaseService.createTriage(triageData)).pipe(
+      map(({ data, error }) => {
+        if (error) {
+          console.error('Error creating triage:', error);
+          throw error;
+        }
+        
+        if (!data || data.length === 0) {
+          throw new Error('No data returned from insert');
+        }
+
+        const triage = data[0];
+        const newPatient: Patient = {
+          id: parseInt(triage.id.substring(0, 8), 16), // Convert UUID to number for compatibility
+          name: triage.name,
+          cpf: triage.cpf,
+          birthDate: triage.birth_date,
+          arrivalTime: new Date(triage.created_at).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          priority: triage.priority as 'Alta' | 'Média' | 'Baixa' | 'Não triado',
+          symptoms: triage.symptoms || [],
+          otherSymptoms: triage.other_symptoms,
+          duration: triage.duration,
+          intensity: triage.intensity as 'Leve' | 'Moderada' | 'Alta',
+          medications: triage.medications || '',
+          consultReason: triage.consult_reason,
+          motherName: triage.mother_name,
+          allergies: triage.allergies,
+          vitalSigns: triage.vital_signs
+        };
+        
+        return newPatient;
+      }),
+      catchError(error => {
+        console.error('Error in registerTriage:', error);
+        throw error;
+      })
+    );
   }
 }

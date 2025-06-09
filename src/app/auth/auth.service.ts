@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { delay, tap, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, from } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { SupabaseService, DatabaseUser } from '../services/supabase.service';
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: 'medico' | 'enfermeiro' | 'admin' | 'recepcao';
@@ -16,85 +17,53 @@ export interface User {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-  
-  // Mock users for demo
-  private users: User[] = [
-    { 
-      id: 1, 
-      name: 'Dr. Ana Souza', 
-      email: 'ana.souza@example.com', 
-      role: 'medico',
-      avatar: 'https://i.pravatar.cc/150?img=5' 
-    },
-    { 
-      id: 2, 
-      name: 'Dr. João Souza', 
-      email: 'joao.souza@example.com', 
-      role: 'medico',
-      avatar: 'https://i.pravatar.cc/150?img=8'
-    },
-    { 
-      id: 3, 
-      name: 'Enf. Carlos Lima', 
-      email: 'carlos.lima@example.com', 
-      role: 'enfermeiro',
-      avatar: 'https://i.pravatar.cc/150?img=11'
-    },
-    { 
-      id: 4, 
-      name: 'Enf. Maria Silva', 
-      email: 'maria.silva@example.com', 
-      role: 'enfermeiro',
-      avatar: 'https://i.pravatar.cc/150?img=9'
-    },
-    { 
-      id: 5, 
-      name: 'Admin. Roberto Santos', 
-      email: 'admin@example.com', 
-      role: 'admin',
-      avatar: 'https://i.pravatar.cc/150?img=7'
-    },
-    { 
-      id: 6, 
-      name: 'Recep. Paula Costa', 
-      email: 'recepcao@example.com', 
-      role: 'recepcao',
-      avatar: 'https://i.pravatar.cc/150?img=10'
-    }
-  ];
 
-  constructor() {
-    // Check for saved user in localStorage
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
-    }
+  constructor(private supabaseService: SupabaseService) {
+    // Subscribe to Supabase user changes
+    this.supabaseService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUserSubject.next({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar
+        });
+      } else {
+        this.currentUserSubject.next(null);
+      }
+    });
   }
 
   login(email: string, password: string): Observable<User> {
-    // Simulate API call with delay
-    return of(this.users.find(user => 
-      user.email === email || 
-      // Allow CPF login (in a real app, would validate CPF format)
-      email.replace(/[^\d]/g, '').length === 11
-    )).pipe(
-      delay(800),
-      map(user => {
+    return from(this.supabaseService.signIn(email, password)).pipe(
+      map(({ user, error }) => {
+        if (error) {
+          throw new Error(error.message || 'Login failed');
+        }
         if (!user) {
           throw new Error('User not found');
         }
-        return user;
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar
+        };
       }),
-      tap(user => {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        this.currentUserSubject.next(user);
+      catchError(error => {
+        throw error;
       })
     );
   }
 
-  logout(): void {
-    localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
+  logout(): Observable<void> {
+    return from(this.supabaseService.signOut()).pipe(
+      map(() => {
+        this.currentUserSubject.next(null);
+      })
+    );
   }
 
   get currentUser(): User | null {
@@ -102,11 +71,10 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.currentUser;
+    return this.supabaseService.isAuthenticated();
   }
 
   hasRole(roles: string[]): boolean {
-    return this.isAuthenticated() && 
-           roles.includes(this.currentUser!.role);
+    return this.supabaseService.hasRole(roles);
   }
 }

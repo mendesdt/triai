@@ -45,6 +45,7 @@ export class PatientQueueComponent implements OnInit {
     this.receptionService.getPendingPatients()
       .subscribe({
         next: (data) => {
+          console.log('Loaded patients from Supabase:', data);
           this.pendingPatients = data;
           this.applyFilters();
           this.loading = false;
@@ -88,10 +89,12 @@ export class PatientQueueComponent implements OnInit {
       this.receptionService.removePendingPatient(id)
         .subscribe({
           next: () => {
+            console.log('Patient removed successfully');
             this.loadPendingPatients();
           },
           error: (error) => {
             console.error('Error removing patient:', error);
+            alert('Erro ao remover paciente. Tente novamente.');
           }
         });
     }
@@ -111,12 +114,15 @@ export class PatientQueueComponent implements OnInit {
       cpf: this.f['cpf'].value
     };
     
+    console.log('Submitting patient data:', patientData);
+    
     const operation = this.editingPatient 
       ? this.receptionService.updatePendingPatient(this.editingPatient.id, patientData)
       : this.receptionService.addPendingPatient(patientData);
     
     operation.subscribe({
-      next: () => {
+      next: (result) => {
+        console.log('Patient saved successfully:', result);
         this.loading = false;
         this.closeAddPatientModal();
         this.loadPendingPatients();
@@ -124,6 +130,7 @@ export class PatientQueueComponent implements OnInit {
       error: (error) => {
         console.error('Error saving patient:', error);
         this.loading = false;
+        alert('Erro ao salvar paciente. Verifique os dados e tente novamente.');
       }
     });
   }
