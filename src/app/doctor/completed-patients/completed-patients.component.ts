@@ -85,7 +85,11 @@ export class CompletedPatientsComponent implements OnInit {
     this.loadCompletedPatients();
   }
 
-  getAge(birthDate: string): number {
+  getAge(birthDate: string | undefined): number {
+    if (!birthDate) {
+      return 0;
+    }
+    
     const today = new Date();
     const birthDateObj = new Date(birthDate);
     let age = today.getFullYear() - birthDateObj.getFullYear();

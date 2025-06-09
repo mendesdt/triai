@@ -164,7 +164,11 @@ Hipóteses clínicas sugeridas: ${this.clinicalHypotheses.map(h => h.description
 Alertas: ${this.clinicalAlerts.map(a => a.description).join(', ')}.`;
   }
 
-  public getAge(birthDate: string): number {
+  public getAge(birthDate: string | undefined): number {
+    if (!birthDate) {
+      return 0;
+    }
+    
     const today = new Date();
     const birthDateObj = new Date(birthDate);
     let age = today.getFullYear() - birthDateObj.getFullYear();
