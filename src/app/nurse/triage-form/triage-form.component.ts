@@ -18,7 +18,7 @@ export class TriageFormComponent implements OnInit {
   loading = false;
   success = false;
   isEditMode = false;
-  triageId: number | null = null;
+  triageId: string | null = null;
   pendingPatientId: string | null = null;
   public noAllergiesChecked = false;
   
@@ -82,7 +82,7 @@ export class TriageFormComponent implements OnInit {
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;
-        this.triageId = +params['id'];
+        this.triageId = params['id'];
         this.loadTriageData();
       }
     });
@@ -209,7 +209,12 @@ export class TriageFormComponent implements OnInit {
       : this.patientService.registerTriage(triageData);
     
     operation.subscribe({
-      next: () => {
+      next: (result) => {
+        console.log('Triagem salva com sucesso:', result);
+        
+        // Chamar API externa aqui se necessário
+        this.callExternalAPI(result);
+        
         // If this was from a pending patient, remove from pending list
         if (this.pendingPatientId) {
           this.receptionService.removePendingPatient(this.pendingPatientId)
@@ -229,8 +234,21 @@ export class TriageFormComponent implements OnInit {
       error: (error) => {
         console.error('Error saving triage:', error);
         this.loading = false;
+        alert('Erro ao salvar triagem. Tente novamente.');
       }
     });
+  }
+
+  // Método para chamar API externa
+  private callExternalAPI(triageData: any): void {
+    // Aqui você pode chamar sua API externa
+    console.log('Dados da triagem para API externa:', triageData);
+    
+    // Exemplo de como seria a chamada:
+    // this.http.post('https://sua-api.com/triages', triageData).subscribe({
+    //   next: (response) => console.log('API externa chamada com sucesso:', response),
+    //   error: (error) => console.error('Erro ao chamar API externa:', error)
+    // });
   }
 
   completeTriageProcess(): void {

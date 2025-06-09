@@ -86,19 +86,24 @@ export class TriageListComponent implements OnInit {
     this.router.navigate(['/triage/new']);
   }
 
-  editTriage(id: number): void {
+  editTriage(id: string): void {
     this.router.navigate(['/triage/edit', id]);
   }
 
-  deleteTriage(id: number): void {
+  deleteTriage(id: string): void {
     if (confirm('Tem certeza que deseja excluir esta triagem?')) {
       this.patientService.deleteTriage(id)
         .subscribe({
-          next: () => {
-            this.loadTriages();
+          next: (success) => {
+            if (success) {
+              this.loadTriages();
+            } else {
+              alert('Erro ao excluir triagem.');
+            }
           },
           error: (error) => {
             console.error('Error deleting triage:', error);
+            alert('Erro ao excluir triagem.');
           }
         });
     }

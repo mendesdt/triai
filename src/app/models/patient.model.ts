@@ -1,5 +1,5 @@
 export interface Patient {
-  id: number;
+  id?: string;
   name: string;
   photo?: string;
   cpf: string;
@@ -23,6 +23,8 @@ export interface Patient {
   allergies?: string;
   vitalSigns?: VitalSigns;
   triageStatus?: 'pending' | 'in-progress' | 'completed';
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface VitalSigns {

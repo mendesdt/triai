@@ -13,7 +13,7 @@ import { PatientService } from '../../services/patient.service';
   imports: [CommonModule, RouterModule]
 })
 export class PatientSummaryComponent implements OnInit {
-  patientId!: number;
+  patientId!: string;
   patient: Patient | null = null;
   clinicalHypotheses: ClinicalHypothesis[] = [];
   clinicalAlerts: ClinicalAlert[] = [];
@@ -31,7 +31,7 @@ export class PatientSummaryComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.patientId = +params['id'];
+      this.patientId = params['id'];
       this.loadPatientData();
     });
   }
@@ -39,7 +39,7 @@ export class PatientSummaryComponent implements OnInit {
   loadPatientData(): void {
     this.loading = true;
     
-    this.patientService.getPatientById(this.patientId)
+    this.patientService.getTriageById(this.patientId)
       .subscribe({
         next: (patient) => {
           if (patient) {
@@ -63,7 +63,9 @@ export class PatientSummaryComponent implements OnInit {
   }
 
   checkPatientHistory(): void {
-    this.patientService.getPatientHistory(this.patientId)
+    // Convert string ID to number for compatibility with existing method
+    const numericId = parseInt(this.patientId) || 1;
+    this.patientService.getPatientHistory(numericId)
       .subscribe({
         next: (history) => {
           this.hasPatientHistory = history.length > 0;
@@ -76,8 +78,11 @@ export class PatientSummaryComponent implements OnInit {
   }
 
   loadClinicalData(): void {
+    // Convert string ID to number for compatibility with existing methods
+    const numericId = parseInt(this.patientId) || 1;
+    
     // Load clinical hypotheses
-    this.patientService.getClinicalHypotheses(this.patientId)
+    this.patientService.getClinicalHypotheses(numericId)
       .subscribe({
         next: (hypotheses) => {
           this.clinicalHypotheses = hypotheses;
@@ -88,7 +93,7 @@ export class PatientSummaryComponent implements OnInit {
       });
     
     // Load clinical alerts
-    this.patientService.getClinicalAlerts(this.patientId)
+    this.patientService.getClinicalAlerts(numericId)
       .subscribe({
         next: (alerts) => {
           this.clinicalAlerts = alerts;
@@ -115,9 +120,13 @@ export class PatientSummaryComponent implements OnInit {
     if (confirm('Tem certeza que deseja completar este atendimento?')) {
       this.patientService.completeAttendance(this.patientId)
         .subscribe({
-          next: () => {
-            alert('Atendimento completado com sucesso!');
-            this.router.navigate(['/patients']);
+          next: (success) => {
+            if (success) {
+              alert('Atendimento completado com sucesso!');
+              this.router.navigate(['/patients']);
+            } else {
+              alert('Erro ao completar atendimento');
+            }
           },
           error: (error) => {
             console.error('Error completing attendance:', error);
@@ -131,9 +140,13 @@ export class PatientSummaryComponent implements OnInit {
     if (confirm('Tem certeza que deseja remover este atendimento? Esta ação não pode ser desfeita.')) {
       this.patientService.removeAttendance(this.patientId)
         .subscribe({
-          next: () => {
-            alert('Atendimento removido com sucesso!');
-            this.router.navigate(['/patients']);
+          next: (success) => {
+            if (success) {
+              alert('Atendimento removido com sucesso!');
+              this.router.navigate(['/patients']);
+            } else {
+              alert('Erro ao remover atendimento');
+            }
           },
           error: (error) => {
             console.error('Error removing attendance:', error);

@@ -81,7 +81,7 @@ export class PatientListComponent implements OnInit {
     this.applyFilters();
   }
   
-  viewPatient(id: number): void {
+  viewPatient(id: string): void {
     this.router.navigate(['/patient', id]);
   }
   
