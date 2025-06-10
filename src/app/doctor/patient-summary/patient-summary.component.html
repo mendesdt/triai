@@ -130,14 +130,14 @@
       </div>
 
       <!-- AI Hypotheses Section -->
-      <div class="summary-card" *ngIf="patient?.aiHypotheses && patient.aiHypotheses.length > 0">
+      <div class="summary-card" *ngIf="patient?.aiHypotheses?.length">
         <div class="card-title">
           <span class="material-icons">psychology</span>
           Hipóteses Clínicas da IA
         </div>
         <div class="card-content">
           <div class="ai-hypotheses-list">
-            <div *ngFor="let hypothesis of patient.aiHypotheses" class="hypothesis-item">
+            <div *ngFor="let hypothesis of patient?.aiHypotheses" class="hypothesis-item">
               <div class="hypothesis-header">
                 <span class="hypothesis-illness">{{ hypothesis.illness }}</span>
                 <span class="hypothesis-probability" [ngClass]="getProbabilityClass(hypothesis.probability)">
@@ -151,13 +151,13 @@
       </div>
 
       <!-- AI Alerts Section -->
-      <div class="summary-card alerts-card" *ngIf="patient?.aiAlerts && patient.aiAlerts.length > 0">
+      <div class="summary-card alerts-card" *ngIf="patient?.aiAlerts?.length">
         <div class="card-title">
           <span class="material-icons">warning</span>
           Alertas Clínicos da IA
         </div>
         <div class="card-content">
-          <div *ngFor="let alert of patient.aiAlerts" 
+          <div *ngFor="let alert of patient?.aiAlerts" 
                class="alert-item alert-warning">
             <span class="material-icons">warning_amber</span>
             <div class="alert-content">
@@ -169,7 +169,7 @@
       </div>
 
       <!-- Fallback for when no AI data is available -->
-      <div class="summary-card" *ngIf="!patient?.aiHypotheses || patient.aiHypotheses.length === 0">
+      <div class="summary-card" *ngIf="!patient?.aiHypotheses?.length">
         <div class="card-title">
           <span class="material-icons">psychology</span>
           Hipóteses Clínicas Sugeridas pela IA
@@ -183,7 +183,7 @@
         </div>
       </div>
 
-      <div class="summary-card alerts-card" *ngIf="!patient?.aiAlerts || patient.aiAlerts.length === 0">
+      <div class="summary-card alerts-card" *ngIf="!patient?.aiAlerts?.length">
         <div class="card-title">
           <span class="material-icons">warning</span>
           Alertas Clínicos
