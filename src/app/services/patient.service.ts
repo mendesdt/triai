@@ -111,11 +111,20 @@ export class PatientService {
       arrivalTime: triageData.arrivalTime
     };
 
-    return this.http.post(this.externalApiUrl, apiPayload);
+    return this.http.post(this.externalApiUrl, apiPayload).pipe(
+      catchError(error => {
+        console.error('Erro na API externa:', error);
+        return of(null); // Return null instead of throwing error
+      })
+    );
   }
 
   // Save AI analysis to Firebase
   private saveAIAnalysis(patientId: string, analysisData: any): Observable<any> {
+    if (!analysisData) {
+      return of(null);
+    }
+
     const analysisDoc = {
       patientId,
       hypotheses: analysisData.hypotheses || [],
@@ -123,7 +132,12 @@ export class PatientService {
       createdAt: Timestamp.fromDate(new Date())
     };
 
-    return from(addDoc(collection(db, this.aiAnalysisCollection), analysisDoc));
+    return from(addDoc(collection(db, this.aiAnalysisCollection), analysisDoc)).pipe(
+      catchError(error => {
+        console.error('Erro ao salvar análise da IA:', error);
+        return of(null);
+      })
+    );
   }
 
   // Get AI analysis for a patient
@@ -168,7 +182,23 @@ export class PatientService {
           const data = doc.data();
           patients.push({
             id: doc.id,
-            ...data
+            name: data['name'] || '',
+            cpf: data['cpf'] || '',
+            birthDate: data['birthDate'] || '',
+            motherName: data['motherName'] || '',
+            consultReason: data['consultReason'] || '',
+            symptoms: data['symptoms'] || [],
+            otherSymptoms: data['otherSymptoms'] || '',
+            duration: data['duration'] || '',
+            intensity: data['intensity'] || 'Leve',
+            medications: data['medications'] || '',
+            allergies: data['allergies'] || '',
+            vitalSigns: data['vitalSigns'] || {},
+            priority: data['priority'] || 'Baixa',
+            arrivalTime: data['arrivalTime'] || '',
+            triageStatus: data['triageStatus'] || 'completed',
+            createdAt: data['createdAt'],
+            updatedAt: data['updatedAt']
           } as Patient);
         });
         return patients;
@@ -192,9 +222,26 @@ export class PatientService {
     return from(getDoc(docRef)).pipe(
       switchMap(docSnap => {
         if (docSnap.exists()) {
+          const data = docSnap.data();
           const patient = {
             id: docSnap.id,
-            ...docSnap.data()
+            name: data['name'] || '',
+            cpf: data['cpf'] || '',
+            birthDate: data['birthDate'] || '',
+            motherName: data['motherName'] || '',
+            consultReason: data['consultReason'] || '',
+            symptoms: data['symptoms'] || [],
+            otherSymptoms: data['otherSymptoms'] || '',
+            duration: data['duration'] || '',
+            intensity: data['intensity'] || 'Leve',
+            medications: data['medications'] || '',
+            allergies: data['allergies'] || '',
+            vitalSigns: data['vitalSigns'] || {},
+            priority: data['priority'] || 'Baixa',
+            arrivalTime: data['arrivalTime'] || '',
+            triageStatus: data['triageStatus'] || 'completed',
+            createdAt: data['createdAt'],
+            updatedAt: data['updatedAt']
           } as Patient;
 
           // Get AI analysis for this patient
@@ -216,7 +263,7 @@ export class PatientService {
   }
 
   // Registrar nova triagem
-  registerTriage(triageData: Partial<Patient>): Observable<Patient> {
+  registerTriage(triageData: any): Observable<Patient> {
     const now = new Date();
     
     const newTriage = {
@@ -239,8 +286,12 @@ export class PatientService {
       updatedAt: Timestamp.fromDate(now)
     };
 
+    console.log('Registrando triagem:', newTriage);
+
     return from(addDoc(collection(db, this.triagesCollection), newTriage)).pipe(
       switchMap(docRef => {
+        console.log('Triagem registrada com ID:', docRef.id);
+        
         const patientWithId = {
           id: docRef.id,
           ...newTriage
@@ -249,15 +300,18 @@ export class PatientService {
         // Call external API for AI analysis
         return this.callExternalAPI(patientWithId).pipe(
           switchMap(analysisResult => {
-            // Save AI analysis to Firebase
-            return this.saveAIAnalysis(docRef.id, analysisResult).pipe(
-              map(() => patientWithId)
-            );
-          }),
-          catchError(apiError => {
-            console.error('Erro na API externa:', apiError);
-            // Return patient data even if API fails
-            return of(patientWithId);
+            if (analysisResult) {
+              // Save AI analysis to Firebase
+              return this.saveAIAnalysis(docRef.id, analysisResult).pipe(
+                map(() => {
+                  console.log('Análise da IA salva com sucesso');
+                  return patientWithId;
+                })
+              );
+            } else {
+              console.log('API externa falhou, mas triagem foi salva');
+              return of(patientWithId);
+            }
           })
         );
       }),
@@ -269,11 +323,23 @@ export class PatientService {
   }
 
   // Atualizar triagem
-  updateTriage(id: string, triageData: Partial<Patient>): Observable<Patient> {
+  updateTriage(id: string, triageData: any): Observable<Patient> {
     const triageRef = doc(db, this.triagesCollection, id);
     
     const updateData = {
-      ...triageData,
+      name: triageData.name || '',
+      cpf: triageData.cpf || '',
+      birthDate: triageData.birthDate || '',
+      motherName: triageData.motherName || '',
+      consultReason: triageData.consultReason || '',
+      symptoms: triageData.symptoms || [],
+      otherSymptoms: triageData.otherSymptoms || '',
+      duration: triageData.duration || '',
+      intensity: triageData.intensity || 'Leve',
+      medications: triageData.medications || '',
+      allergies: triageData.allergies || '',
+      vitalSigns: triageData.vitalSigns || {},
+      priority: triageData.priority || 'Baixa',
       updatedAt: Timestamp.fromDate(new Date())
     };
 
@@ -287,14 +353,14 @@ export class PatientService {
         // Call external API for updated analysis
         return this.callExternalAPI(updatedPatient).pipe(
           switchMap(analysisResult => {
-            // Save updated AI analysis
-            return this.saveAIAnalysis(id, analysisResult).pipe(
-              map(() => updatedPatient)
-            );
-          }),
-          catchError(apiError => {
-            console.error('Erro na API externa:', apiError);
-            return of(updatedPatient);
+            if (analysisResult) {
+              // Save updated AI analysis
+              return this.saveAIAnalysis(id, analysisResult).pipe(
+                map(() => updatedPatient)
+              );
+            } else {
+              return of(updatedPatient);
+            }
           })
         );
       }),
@@ -369,7 +435,26 @@ export class PatientService {
           const data = doc.data();
           patients.push({
             id: doc.id,
-            ...data
+            name: data['name'] || '',
+            cpf: data['cpf'] || '',
+            birthDate: data['birthDate'] || '',
+            motherName: data['motherName'] || '',
+            consultReason: data['consultReason'] || '',
+            symptoms: data['symptoms'] || [],
+            otherSymptoms: data['otherSymptoms'] || '',
+            duration: data['duration'] || '',
+            intensity: data['intensity'] || 'Leve',
+            medications: data['medications'] || '',
+            allergies: data['allergies'] || '',
+            vitalSigns: data['vitalSigns'] || {},
+            priority: data['priority'] || 'Baixa',
+            arrivalTime: data['arrivalTime'] || '',
+            completedTime: data['completedTime'] || '',
+            diagnosis: data['diagnosis'] || '',
+            triageStatus: data['triageStatus'] || 'completed',
+            createdAt: data['createdAt'],
+            updatedAt: data['updatedAt'],
+            completedAt: data['completedAt']
           } as Patient);
         });
         return patients;

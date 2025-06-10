@@ -225,6 +225,8 @@ export class TriageFormComponent implements OnInit {
       }
     };
     
+    console.log('Enviando dados da triagem:', triageData);
+    
     const operation = this.isEditMode 
       ? this.patientService.updateTriage(this.triageId!, triageData)
       : this.patientService.registerTriage(triageData);
@@ -238,6 +240,7 @@ export class TriageFormComponent implements OnInit {
           this.receptionService.removePendingPatient(this.pendingPatientId)
             .subscribe({
               next: () => {
+                console.log('Paciente removido da lista de pendentes');
                 this.completeTriageProcess();
               },
               error: (error) => {

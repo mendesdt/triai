@@ -2,12 +2,12 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyADkeWH0GebbMem-wK2jNGLW673FYd408c",
-  authDomain: "triai-dev.firebaseapp.com",
-  projectId: "triai-dev",
-  storageBucket: "triai-dev.firebasestorage.app",
-  messagingSenderId: "970396293682",
-  appId: "1:970396293682:web:f8d7c3d3bb2218c9db7a2b"
+  apiKey: "AIzaSyDVC_vBZfeYtn3OpWyUd16Q5W1OU_v_Bvo",
+  authDomain: "triai-dev-462420.firebaseapp.com",
+  projectId: "triai-dev-462420",
+  storageBucket: "triai-dev-462420.firebasestorage.app",
+  messagingSenderId: "100869897469",
+  appId: "1:100869897469:web:068846d40d2aa7fe959294"
 };
 
 // Initialize Firebase
