@@ -25,15 +25,19 @@
         <span class="material-icons" style="font-size: 64px; color: var(--primary);">person</span>
       </div>
       <div class="profile-info">
-        <h2 class="profile-name">{{ patient?.name }}</h2>
+        <h2 class="profile-name">{{ patient?.name || 'Paciente' }}</h2>
         <div class="profile-meta">
           <div class="meta-item">
             <span class="material-icons">badge</span>
-            <span>{{ patient?.cpf }}</span>
+            <span>{{ patient?.cpf || 'CPF não informado' }}</span>
           </div>
-          <div class="meta-item">
+          <div class="meta-item" *ngIf="patient?.birthDate">
             <span class="material-icons">cake</span>
             <span>{{ patient?.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient?.birthDate || '') }} anos)</span>
+          </div>
+          <div class="meta-item" *ngIf="patient?.motherName">
+            <span class="material-icons">family_restroom</span>
+            <span>Mãe: {{ patient?.motherName }}</span>
           </div>
         </div>
         <div class="profile-location" *ngIf="patient?.city">
@@ -58,7 +62,7 @@
     <div class="history-section">
       <div class="section-header">
         <span class="material-icons">event_note</span>
-        <h2>Atendimentos Recentes</h2>
+        <h2>Atendimentos e Consultas</h2>
       </div>
 
       <ng-container *ngIf="!loading; else loadingTemplate">
@@ -69,14 +73,18 @@
                 <div class="appointment-type">
                   <span class="material-icons" 
                     [ngClass]="{
-                      'icon-doctor': record.type.includes('Consulta'),
-                      'icon-nurse': record.type.includes('Enfermagem')
+                      'icon-doctor': record.type.includes('Consulta') || record.type.includes('Médica'),
+                      'icon-nurse': record.type.includes('Enfermagem') || record.type.includes('Triagem')
                     }">
-                    {{ record.type.includes('Consulta') ? 'medical_services' : 'healing' }}
+                    {{ record.type.includes('Consulta') || record.type.includes('Médica') ? 'medical_services' : 'healing' }}
                   </span>
                   <h3>{{ record.type }}</h3>
                 </div>
                 <span class="appointment-date">{{ record.date }}</span>
+                <div class="professional-info" *ngIf="record.professionalName">
+                  <span class="material-icons">person</span>
+                  <span>{{ record.professionalName }} ({{ record.professionalRole }})</span>
+                </div>
               </div>
               <div class="header-right">
                 <span class="status-badge" [ngClass]="{
@@ -88,6 +96,40 @@
             </div>
             
             <div class="history-card-content">
+              <div class="info-group" *ngIf="record.consultReason">
+                <span class="info-label">Motivo da Consulta:</span>
+                <span class="info-value">{{ record.consultReason }}</span>
+              </div>
+
+              <div class="info-group" *ngIf="record.symptoms && record.symptoms.length > 0">
+                <span class="info-label">Sintomas:</span>
+                <div class="symptoms-display">
+                  <span *ngFor="let symptom of record.symptoms" class="symptom-chip">{{ symptom }}</span>
+                  <div *ngIf="record.otherSymptoms" class="other-symptoms">
+                    <strong>Outros:</strong> {{ record.otherSymptoms }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-group" *ngIf="record.duration">
+                <span class="info-label">Duração dos Sintomas:</span>
+                <span class="info-value">{{ record.duration }}</span>
+              </div>
+
+              <div class="info-group" *ngIf="record.intensity">
+                <span class="info-label">Intensidade:</span>
+                <span class="info-value intensity-badge" [ngClass]="getIntensityClass(record.intensity)">
+                  {{ record.intensity }}
+                </span>
+              </div>
+
+              <div class="info-group" *ngIf="record.priority">
+                <span class="info-label">Prioridade:</span>
+                <span class="info-value priority-badge" [ngClass]="getPriorityClass(record.priority)">
+                  {{ record.priority }}
+                </span>
+              </div>
+              
               <div class="info-group">
                 <span class="info-label">Diagnóstico:</span>
                 <span class="info-value">{{ record.diagnosis }}</span>
@@ -102,6 +144,16 @@
                 <span class="info-label">Evolução:</span>
                 <span class="info-value">{{ record.evolution }}</span>
               </div>
+
+              <div class="info-group" *ngIf="record.allergies">
+                <span class="info-label">Alergias:</span>
+                <span class="info-value">{{ record.allergies }}</span>
+              </div>
+
+              <div class="info-group" *ngIf="record.observations">
+                <span class="info-label">Observações:</span>
+                <span class="info-value">{{ record.observations }}</span>
+              </div>
             </div>
             
             <div class="history-card-footer">
@@ -111,11 +163,6 @@
               </button>
             </div>
           </div>
-          
-          <button *ngIf="patientHistory.length > 3" class="btn-load-more">
-            <span class="material-icons">expand_more</span>
-            Ver mais atendimentos
-          </button>
         </div>
 
         <ng-template #emptyHistory>
@@ -140,7 +187,7 @@
 <div *ngIf="selectedRecord" class="modal-overlay" (click)="closeDetails()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>Detalhes da Consulta</h3>
+      <h3>Detalhes Completos da Consulta</h3>
       <button class="btn-close" (click)="closeDetails()">
         <span class="material-icons">close</span>
       </button>
@@ -157,8 +204,64 @@
           <span class="detail-value">{{ selectedRecord.type }}</span>
         </div>
         <div class="detail-item">
+          <span class="detail-label">Profissional:</span>
+          <span class="detail-value">{{ selectedRecord.professionalName }} ({{ selectedRecord.professionalRole }})</span>
+        </div>
+        <div class="detail-item">
           <span class="detail-label">Status:</span>
           <span class="detail-value">{{ selectedRecord.status }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedRecord.consultReason">
+        <h4>Motivo da Consulta</h4>
+        <div class="detail-item">
+          <span class="detail-value">{{ selectedRecord.consultReason }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedRecord.symptoms && selectedRecord.symptoms.length > 0">
+        <h4>Sintomas Apresentados</h4>
+        <div class="symptoms-display">
+          <span *ngFor="let symptom of selectedRecord.symptoms" class="symptom-chip">{{ symptom }}</span>
+        </div>
+        <div *ngIf="selectedRecord.otherSymptoms" class="detail-item">
+          <span class="detail-label">Outros sintomas:</span>
+          <span class="detail-value">{{ selectedRecord.otherSymptoms }}</span>
+        </div>
+        <div *ngIf="selectedRecord.duration" class="detail-item">
+          <span class="detail-label">Duração:</span>
+          <span class="detail-value">{{ selectedRecord.duration }}</span>
+        </div>
+        <div *ngIf="selectedRecord.intensity" class="detail-item">
+          <span class="detail-label">Intensidade:</span>
+          <span class="detail-value">{{ selectedRecord.intensity }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedRecord.vitalSigns && hasVitalSigns(selectedRecord.vitalSigns)">
+        <h4>Sinais Vitais</h4>
+        <div class="vital-signs-grid">
+          <div *ngIf="selectedRecord.vitalSigns.temperature" class="vital-item">
+            <span class="vital-label">Temperatura:</span>
+            <span class="vital-value">{{ selectedRecord.vitalSigns.temperature }}°C</span>
+          </div>
+          <div *ngIf="selectedRecord.vitalSigns.heartRate" class="vital-item">
+            <span class="vital-label">Freq. Cardíaca:</span>
+            <span class="vital-value">{{ selectedRecord.vitalSigns.heartRate }} bpm</span>
+          </div>
+          <div *ngIf="selectedRecord.vitalSigns.respiratoryRate" class="vital-item">
+            <span class="vital-label">Freq. Respiratória:</span>
+            <span class="vital-value">{{ selectedRecord.vitalSigns.respiratoryRate }} rpm</span>
+          </div>
+          <div *ngIf="selectedRecord.vitalSigns.bloodPressureSystolic && selectedRecord.vitalSigns.bloodPressureDiastolic" class="vital-item">
+            <span class="vital-label">Pressão Arterial:</span>
+            <span class="vital-value">{{ selectedRecord.vitalSigns.bloodPressureSystolic }}/{{ selectedRecord.vitalSigns.bloodPressureDiastolic }} mmHg</span>
+          </div>
+          <div *ngIf="selectedRecord.vitalSigns.oxygenSaturation" class="vital-item">
+            <span class="vital-label">Sat. Oxigênio:</span>
+            <span class="vital-value">{{ selectedRecord.vitalSigns.oxygenSaturation }}%</span>
+          </div>
         </div>
       </div>
       
@@ -175,6 +278,20 @@
         <div class="detail-item">
           <span class="detail-label">Evolução:</span>
           <span class="detail-value">{{ selectedRecord.evolution }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedRecord.allergies">
+        <h4>Alergias</h4>
+        <div class="detail-item">
+          <span class="detail-value">{{ selectedRecord.allergies }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedRecord.observations">
+        <h4>Observações</h4>
+        <div class="detail-item">
+          <span class="detail-value">{{ selectedRecord.observations }}</span>
         </div>
       </div>
     </div>
