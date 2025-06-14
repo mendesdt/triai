@@ -8,13 +8,13 @@
     "dev": "ng serve"
   },
   "dependencies": {
-    "@angular/animations": "^19.2.0",
-    "@angular/common": "^19.2.0",
-    "@angular/compiler": "^19.2.0",
-    "@angular/core": "^19.2.0",
-    "@angular/forms": "^19.2.0",
-    "@angular/platform-browser": "^19.2.0",
-    "@angular/router": "^19.2.0",
+    "@angular/animations": "19.2.14",
+    "@angular/common": "19.2.14",
+    "@angular/compiler": "19.2.14",
+    "@angular/core": "19.2.14",
+    "@angular/forms": "19.2.14",
+    "@angular/platform-browser": "19.2.14",
+    "@angular/router": "19.2.14",
     "@angular/fire": "^19.0.0",
     "firebase": "^10.13.0",
     "rxjs": "^7.8.1",
@@ -22,9 +22,9 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^19.2.0",
-    "@angular/cli": "^19.2.0",
-    "@angular/compiler-cli": "^19.2.0",
+    "@angular/build": "19.2.14",
+    "@angular/cli": "19.2.14",
+    "@angular/compiler-cli": "19.2.14",
     "typescript": "^5.8.2"
   }
 }
