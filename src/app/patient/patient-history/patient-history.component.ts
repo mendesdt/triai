@@ -268,4 +268,32 @@ export class PatientHistoryComponent implements OnInit {
     
     return age;
   }
+
+  getIntensityClass(intensity: string): string {
+    switch (intensity?.toLowerCase()) {
+      case 'alta':
+        return 'intensity-high';
+      case 'média':
+      case 'media':
+        return 'intensity-medium';
+      case 'baixa':
+        return 'intensity-low';
+      default:
+        return 'intensity-medium';
+    }
+  }
+
+  getPriorityClass(priority: string): string {
+    switch (priority?.toLowerCase()) {
+      case 'alta':
+        return 'priority-high';
+      case 'média':
+      case 'media':
+        return 'priority-medium';
+      case 'baixa':
+        return 'priority-low';
+      default:
+        return 'priority-medium';
+    }
+  }
 }
