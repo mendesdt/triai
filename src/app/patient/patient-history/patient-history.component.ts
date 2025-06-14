@@ -296,4 +296,19 @@ export class PatientHistoryComponent implements OnInit {
         return 'priority-medium';
     }
   }
+
+  hasVitalSigns(vitalSigns: any): boolean {
+    if (!vitalSigns || typeof vitalSigns !== 'object') {
+      return false;
+    }
+    
+    return !!(
+      vitalSigns.heartRate ||
+      vitalSigns.respiratoryRate ||
+      vitalSigns.temperature ||
+      vitalSigns.bloodPressureSystolic ||
+      vitalSigns.bloodPressureDiastolic ||
+      vitalSigns.oxygenSaturation
+    );
+  }
 }
