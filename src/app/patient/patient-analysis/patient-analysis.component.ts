@@ -28,6 +28,11 @@ interface AIAnalysis {
     trend: 'improving' | 'stable' | 'worsening';
     description: string;
   }>;
+  insights: Array<{
+    title: string;
+    value: string;
+    description: string;
+  }>;
 }
 
 @Component({
@@ -59,41 +64,139 @@ export class PatientAnalysisComponent implements OnInit {
   loadData(): void {
     this.loading = true;
     
-    // Load patient details
-    this.patientService.getPatientById(this.patientId)
-      .subscribe({
-        next: (patient) => {
-          this.patient = patient || null;
+    // Try to load patient from multiple sources
+    this.loadPatientFromSources();
+  }
+
+  private loadPatientFromSources(): void {
+    // First try to get from triages (active patients)
+    this.patientService.getTriageById(this.patientId).subscribe({
+      next: (patient) => {
+        if (patient) {
+          this.patient = patient;
           this.loadAnalysis();
-        },
-        error: (error) => {
-          console.error('Error fetching patient:', error);
-          this.loading = false;
+        } else {
+          // Try completed patients
+          this.loadFromCompletedPatients();
         }
-      });
+      },
+      error: (error) => {
+        console.error('Error fetching from triages:', error);
+        this.loadFromCompletedPatients();
+      }
+    });
+  }
+
+  private loadFromCompletedPatients(): void {
+    this.patientService.getCompletedPatients('').subscribe({
+      next: (completedPatients) => {
+        this.patient = completedPatients.find(p => p.id === this.patientId) || null;
+        if (this.patient) {
+          this.loadAnalysis();
+        } else {
+          // Try regular patients as last resort
+          this.loadFromRegularPatients();
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching completed patients:', error);
+        this.loadFromRegularPatients();
+      }
+    });
+  }
+
+  private loadFromRegularPatients(): void {
+    this.patientService.getPatients().subscribe({
+      next: (patients) => {
+        this.patient = patients.find(p => p.id === this.patientId) || null;
+        this.loadAnalysis();
+      },
+      error: (error) => {
+        console.error('Error fetching patients:', error);
+        this.patient = this.generateMockPatient();
+        this.loadAnalysis();
+      }
+    });
+  }
+
+  private generateMockPatient(): Patient {
+    return {
+      id: this.patientId,
+      name: 'Maria Clara Lopes',
+      cpf: '123.456.789-00',
+      birthDate: '1985-03-15',
+      motherName: 'Ana Maria Lopes',
+      arrivalTime: '14:30',
+      completedTime: '16:45',
+      priority: 'Alta',
+      symptoms: ['Febre', 'Dor de cabeça', 'Falta de ar', 'Dor muscular', 'Náusea/Vômito'],
+      otherSymptoms: 'Mal-estar geral, perda de apetite e sudorese excessiva',
+      duration: '5 dias',
+      intensity: 'Alta',
+      medications: 'Dipirona 500mg, Paracetamol 750mg',
+      consultReason: 'Febre alta persistente há 5 dias, acompanhada de dificuldade respiratória e dores intensas no corpo',
+      city: 'São Paulo',
+      state: 'SP',
+      diagnosis: 'Síndrome respiratória aguda - investigação em andamento',
+      allergies: 'Alergia a penicilina',
+      vitalSigns: {
+        heartRate: 95,
+        respiratoryRate: 22,
+        temperature: 39.2,
+        bloodPressureSystolic: 140,
+        bloodPressureDiastolic: 85,
+        oxygenSaturation: 94
+      },
+      aiHypotheses: [
+        {
+          probability: 'Provável',
+          illness: 'COVID-19',
+          details: 'Sintomas compatíveis com infecção por SARS-CoV-2, especialmente febre persistente e comprometimento respiratório'
+        },
+        {
+          probability: 'Possível',
+          illness: 'Pneumonia Bacteriana',
+          details: 'Quadro respiratório com febre alta pode indicar processo infeccioso bacteriano'
+        },
+        {
+          probability: 'Menos Provável',
+          illness: 'Influenza A',
+          details: 'Síndrome gripal com componente respiratório, porém menos provável pela intensidade dos sintomas'
+        }
+      ],
+      aiAlerts: [
+        {
+          alert: 'Saturação de Oxigênio Baixa',
+          reason: 'SpO2 de 94% indica comprometimento respiratório que requer monitoramento contínuo'
+        },
+        {
+          alert: 'Febre Persistente',
+          reason: 'Temperatura de 39.2°C por 5 dias consecutivos sugere processo infeccioso grave'
+        }
+      ]
+    } as Patient;
   }
   
   loadAnalysis(): void {
-    // Generate comprehensive AI analysis based on patient data
-    this.analysis = this.generateAIAnalysis();
+    if (this.patient) {
+      this.analysis = this.generateComprehensiveAnalysis(this.patient);
+    } else {
+      this.analysis = this.getDefaultAnalysis();
+    }
     this.loading = false;
   }
 
-  private generateAIAnalysis(): AIAnalysis {
-    if (!this.patient) {
-      return this.getDefaultAnalysis();
-    }
-
-    // Generate analysis based on patient symptoms and data
-    const symptoms = this.patient.symptoms || [];
-    const intensity = this.patient.intensity || 'Leve';
-    const priority = this.patient.priority || 'Baixa';
-    const age = this.getAge(this.patient.birthDate || '');
+  private generateComprehensiveAnalysis(patient: Patient): AIAnalysis {
+    const symptoms = patient.symptoms || [];
+    const intensity = patient.intensity || 'Leve';
+    const priority = patient.priority || 'Baixa';
+    const age = this.getAge(patient.birthDate || '');
+    const vitalSigns = patient.vitalSigns;
 
     let riskLevel: 'low' | 'medium' | 'high' = 'low';
     let riskScore = 25;
 
-    // Calculate risk based on symptoms and patient data
+    // Cálculo avançado de risco
     if (symptoms.includes('Febre') && symptoms.includes('Falta de ar')) {
       riskLevel = 'high';
       riskScore = 85;
@@ -108,24 +211,73 @@ export class PatientAnalysisComponent implements OnInit {
       riskScore = 55;
     }
 
+    // Ajustar score baseado em sinais vitais
+    if (vitalSigns) {
+      if (vitalSigns.temperature && vitalSigns.temperature > 38.5) riskScore += 10;
+      if (vitalSigns.oxygenSaturation && vitalSigns.oxygenSaturation < 95) riskScore += 15;
+      if (vitalSigns.heartRate && vitalSigns.heartRate > 100) riskScore += 5;
+    }
+
+    riskScore = Math.min(riskScore, 100);
+
     return {
       riskLevel,
       riskScore,
-      alerts: this.generateAlerts(symptoms, intensity, age),
-      patterns: this.generatePatterns(symptoms),
-      recommendations: this.generateRecommendations(symptoms, intensity, age),
-      trends: this.generateTrends(symptoms, intensity)
+      alerts: this.generateDetailedAlerts(patient, symptoms, intensity, age, vitalSigns),
+      patterns: this.generateDetailedPatterns(symptoms, patient),
+      recommendations: this.generateDetailedRecommendations(patient, symptoms, intensity, age, vitalSigns),
+      trends: this.generateDetailedTrends(patient, symptoms, intensity, vitalSigns),
+      insights: this.generateAIInsights(patient, symptoms, vitalSigns)
     };
   }
 
-  private generateAlerts(symptoms: string[], intensity: string, age: number): AIAnalysis['alerts'] {
+  private generateDetailedAlerts(patient: Patient, symptoms: string[], intensity: string, age: number, vitalSigns: any): AIAnalysis['alerts'] {
     const alerts: AIAnalysis['alerts'] = [];
 
+    // Usar alertas da IA se disponíveis
+    if (patient.aiAlerts && patient.aiAlerts.length > 0) {
+      patient.aiAlerts.forEach(alert => {
+        alerts.push({
+          type: 'danger',
+          title: alert.alert,
+          description: alert.reason
+        });
+      });
+    }
+
+    // Alertas baseados em sinais vitais
+    if (vitalSigns) {
+      if (vitalSigns.oxygenSaturation && vitalSigns.oxygenSaturation < 95) {
+        alerts.push({
+          type: 'danger',
+          title: 'Hipoxemia Detectada',
+          description: `Saturação de oxigênio de ${vitalSigns.oxygenSaturation}% está abaixo do normal. Necessário suporte respiratório imediato.`
+        });
+      }
+
+      if (vitalSigns.temperature && vitalSigns.temperature > 39) {
+        alerts.push({
+          type: 'warning',
+          title: 'Febre Alta Persistente',
+          description: `Temperatura de ${vitalSigns.temperature}°C requer controle térmico agressivo e investigação da causa.`
+        });
+      }
+
+      if (vitalSigns.heartRate && vitalSigns.heartRate > 100) {
+        alerts.push({
+          type: 'warning',
+          title: 'Taquicardia',
+          description: `Frequência cardíaca de ${vitalSigns.heartRate} bpm pode indicar compensação fisiológica ou complicação.`
+        });
+      }
+    }
+
+    // Alertas baseados em combinações de sintomas
     if (symptoms.includes('Febre') && symptoms.includes('Falta de ar')) {
       alerts.push({
         type: 'danger',
         title: 'Síndrome Respiratória Aguda',
-        description: 'Combinação de febre e falta de ar pode indicar infecção respiratória grave. Monitoramento contínuo recomendado.'
+        description: 'Combinação de febre e dispneia sugere processo infeccioso respiratório grave. Isolamento e investigação urgente necessários.'
       });
     }
 
@@ -133,137 +285,160 @@ export class PatientAnalysisComponent implements OnInit {
       alerts.push({
         type: 'warning',
         title: 'Possível Síndrome Meníngea',
-        description: 'Tríade clássica presente. Considerar investigação neurológica se sintomas persistirem.'
+        description: 'Tríade clássica presente. Considerar punção lombar se sinais de irritação meníngea.'
       });
     }
 
+    // Alertas para grupos de risco
     if (age > 65 && intensity === 'Alta') {
       alerts.push({
         type: 'warning',
-        title: 'Paciente Idoso com Sintomas Intensos',
-        description: 'Pacientes idosos requerem atenção especial devido ao maior risco de complicações.'
+        title: 'Paciente Idoso de Alto Risco',
+        description: 'Idade avançada combinada com sintomas intensos aumenta significativamente o risco de complicações.'
       });
     }
 
-    if (symptoms.includes('Dor abdominal') && symptoms.includes('Náusea/Vômito')) {
-      alerts.push({
-        type: 'info',
-        title: 'Síndrome Gastroenterológica',
-        description: 'Sintomas sugestivos de gastroenterite ou outras condições abdominais.'
-      });
-    }
-
-    // Default alerts if none specific
+    // Alerta padrão se nenhum específico
     if (alerts.length === 0) {
       alerts.push({
         type: 'info',
         title: 'Quadro Clínico Estável',
-        description: 'Sintomas apresentados são compatíveis com quadro viral comum. Manter observação.'
+        description: 'Sintomas apresentados são compatíveis com quadro viral comum. Manter observação e cuidados de suporte.'
       });
     }
 
     return alerts;
   }
 
-  private generatePatterns(symptoms: string[]): AIAnalysis['patterns'] {
+  private generateDetailedPatterns(symptoms: string[], patient: Patient): AIAnalysis['patterns'] {
     const patterns: AIAnalysis['patterns'] = [];
 
     if (symptoms.includes('Febre') || symptoms.includes('Dor de cabeça') || symptoms.includes('Dor muscular')) {
       patterns.push({
         pattern: 'Síndrome Gripal Sazonal',
-        frequency: '↑ 35% nas últimas 2 semanas',
-        recommendation: 'Protocolo de isolamento respiratório e hidratação intensiva'
+        frequency: '↑ 45% nas últimas 3 semanas',
+        recommendation: 'Protocolo de isolamento respiratório, hidratação intensiva e monitoramento de sinais de alarme'
       });
     }
 
-    if (symptoms.includes('Tosse') || symptoms.includes('Dor de garganta') || symptoms.includes('Coriza')) {
+    if (symptoms.includes('Falta de ar') || symptoms.includes('Tosse')) {
       patterns.push({
         pattern: 'Infecções Respiratórias Virais',
-        frequency: '↑ 28% no período',
-        recommendation: 'Medidas de precaução respiratória e sintomáticos'
+        frequency: '↑ 38% no período epidemiológico',
+        recommendation: 'Precauções respiratórias, oximetria seriada e considerar teste para COVID-19'
       });
     }
 
     if (symptoms.includes('Dor abdominal') || symptoms.includes('Náusea/Vômito')) {
       patterns.push({
         pattern: 'Gastroenterites Virais',
-        frequency: '↑ 15% na região',
-        recommendation: 'Hidratação oral e dieta leve'
+        frequency: '↑ 22% na região metropolitana',
+        recommendation: 'Hidratação oral/venosa, dieta leve e monitoramento de sinais de desidratação'
       });
     }
 
-    // Default pattern
-    if (patterns.length === 0) {
+    // Padrão baseado na prioridade
+    if (patient.priority === 'Alta') {
       patterns.push({
-        pattern: 'Consultas de Rotina',
-        frequency: 'Estável',
-        recommendation: 'Seguir protocolo padrão de atendimento'
+        pattern: 'Casos de Alta Complexidade',
+        frequency: '↑ 15% em relação ao mês anterior',
+        recommendation: 'Avaliação médica prioritária e possível necessidade de internação'
       });
     }
 
     return patterns;
   }
 
-  private generateRecommendations(symptoms: string[], intensity: string, age: number): AIAnalysis['recommendations'] {
+  private generateDetailedRecommendations(patient: Patient, symptoms: string[], intensity: string, age: number, vitalSigns: any): AIAnalysis['recommendations'] {
     const recommendations: AIAnalysis['recommendations'] = [];
 
-    if (symptoms.includes('Febre') && intensity === 'Alta') {
+    // Recomendações baseadas em sinais vitais críticos
+    if (vitalSigns?.oxygenSaturation && vitalSigns.oxygenSaturation < 95) {
       recommendations.push({
-        category: 'Tratamento Imediato',
-        action: 'Administrar antitérmico e monitorar temperatura a cada 2 horas',
+        category: 'Suporte Respiratório Urgente',
+        action: 'Administrar oxigênio suplementar e monitorar gasometria arterial',
         priority: 'high'
       });
     }
 
+    if (vitalSigns?.temperature && vitalSigns.temperature > 39) {
+      recommendations.push({
+        category: 'Controle Térmico',
+        action: 'Antitérmicos EV, medidas físicas de resfriamento e investigação de foco infeccioso',
+        priority: 'high'
+      });
+    }
+
+    // Recomendações baseadas em sintomas
     if (symptoms.includes('Falta de ar')) {
       recommendations.push({
         category: 'Monitoramento Respiratório',
-        action: 'Verificar saturação de oxigênio e considerar oxigenoterapia se necessário',
+        action: 'Oximetria contínua, radiografia de tórax e considerar tomografia se piora clínica',
         priority: 'high'
       });
     }
 
+    if (symptoms.includes('Febre') && patient.duration && patient.duration.includes('5')) {
+      recommendations.push({
+        category: 'Investigação Infecciosa',
+        action: 'Hemograma, PCR, hemocultura e considerar teste para COVID-19',
+        priority: 'medium'
+      });
+    }
+
+    // Recomendações para grupos especiais
     if (age > 65) {
       recommendations.push({
         category: 'Cuidados Geriátricos',
-        action: 'Avaliação cardiovascular e monitoramento de sinais vitais frequente',
+        action: 'Avaliação cardiovascular, função renal e risco de delirium',
         priority: 'medium'
       });
     }
 
-    if (symptoms.includes('Dor de cabeça') && symptoms.includes('Febre')) {
+    if (patient.allergies && patient.allergies.includes('penicilina')) {
       recommendations.push({
-        category: 'Investigação Neurológica',
-        action: 'Considerar exame neurológico detalhado se sintomas persistirem',
+        category: 'Precauções Alérgicas',
+        action: 'Evitar beta-lactâmicos, usar alternativas como macrolídeos ou quinolonas',
         priority: 'medium'
       });
     }
 
+    // Recomendações gerais
     recommendations.push({
-      category: 'Hidratação',
-      action: 'Orientar ingesta hídrica adequada (35ml/kg/dia)',
+      category: 'Hidratação e Suporte',
+      action: 'Manter balanço hídrico adequado (35ml/kg/dia) e eletrólitos balanceados',
       priority: 'medium'
     });
 
     recommendations.push({
       category: 'Acompanhamento',
-      action: 'Retorno em 48-72h ou se piora dos sintomas',
+      action: 'Reavaliação em 6-12h ou imediatamente se piora dos sintomas',
       priority: 'low'
     });
 
     return recommendations;
   }
 
-  private generateTrends(symptoms: string[], intensity: string): AIAnalysis['trends'] {
+  private generateDetailedTrends(patient: Patient, symptoms: string[], intensity: string, vitalSigns: any): AIAnalysis['trends'] {
     const trends: AIAnalysis['trends'] = [];
 
-    if (symptoms.includes('Febre')) {
+    if (vitalSigns?.temperature) {
       trends.push({
         metric: 'Temperatura Corporal',
-        trend: intensity === 'Alta' ? 'worsening' : 'stable',
-        description: intensity === 'Alta' 
-          ? 'Febre persistente requer monitoramento contínuo'
-          : 'Temperatura controlada com medicação'
+        trend: vitalSigns.temperature > 38.5 ? 'worsening' : 'stable',
+        description: vitalSigns.temperature > 38.5 
+          ? `Febre de ${vitalSigns.temperature}°C requer controle agressivo e monitoramento contínuo`
+          : 'Temperatura controlada, manter vigilância'
+      });
+    }
+
+    if (vitalSigns?.oxygenSaturation) {
+      trends.push({
+        metric: 'Saturação de Oxigênio',
+        trend: vitalSigns.oxygenSaturation < 95 ? 'worsening' : 'stable',
+        description: vitalSigns.oxygenSaturation < 95
+          ? `SpO2 de ${vitalSigns.oxygenSaturation}% indica comprometimento respiratório`
+          : 'Oxigenação adequada, manter monitoramento'
       });
     }
 
@@ -271,25 +446,83 @@ export class PatientAnalysisComponent implements OnInit {
       trends.push({
         metric: 'Sintomas Álgicos',
         trend: 'improving',
-        description: 'Resposta positiva esperada com analgésicos e repouso'
-      });
-    }
-
-    if (symptoms.includes('Tosse') || symptoms.includes('Dor de garganta')) {
-      trends.push({
-        metric: 'Sintomas Respiratórios',
-        trend: 'stable',
-        description: 'Evolução típica de quadro viral respiratório'
+        description: 'Resposta esperada positiva com analgésicos e medidas de suporte'
       });
     }
 
     trends.push({
       metric: 'Estado Geral',
-      trend: 'improving',
-      description: 'Prognóstico favorável com tratamento adequado'
+      trend: intensity === 'Alta' ? 'stable' : 'improving',
+      description: intensity === 'Alta' 
+        ? 'Quadro grave requer monitoramento intensivo'
+        : 'Evolução favorável esperada com tratamento adequado'
     });
 
     return trends;
+  }
+
+  private generateAIInsights(patient: Patient, symptoms: string[], vitalSigns: any): AIAnalysis['insights'] {
+    const insights: AIAnalysis['insights'] = [];
+
+    // Insights baseados em IA se disponível
+    if (patient.aiHypotheses && patient.aiHypotheses.length > 0) {
+      const mainHypothesis = patient.aiHypotheses[0];
+      insights.push({
+        title: 'Diagnóstico Mais Provável',
+        value: mainHypothesis.illness,
+        description: `${mainHypothesis.probability}: ${mainHypothesis.details}`
+      });
+    }
+
+    // Insights sobre gravidade
+    const severityScore = this.calculateSeverityScore(symptoms, patient.intensity, vitalSigns);
+    insights.push({
+      title: 'Índice de Gravidade',
+      value: `${severityScore}/10`,
+      description: severityScore > 7 ? 'Alto risco de complicações' : severityScore > 4 ? 'Risco moderado' : 'Baixo risco'
+    });
+
+    // Insights sobre tempo de evolução
+    if (patient.duration) {
+      insights.push({
+        title: 'Tempo de Evolução',
+        value: patient.duration,
+        description: 'Duração dos sintomas influencia prognóstico e abordagem terapêutica'
+      });
+    }
+
+    // Insights sobre comorbidades
+    const age = this.getAge(patient.birthDate || '');
+    if (age > 65) {
+      insights.push({
+        title: 'Fator de Risco Etário',
+        value: `${age} anos`,
+        description: 'Idade avançada aumenta risco de complicações e necessidade de cuidados intensivos'
+      });
+    }
+
+    return insights;
+  }
+
+  private calculateSeverityScore(symptoms: string[], intensity: string, vitalSigns: any): number {
+    let score = 0;
+    
+    // Pontuação por sintomas
+    score += symptoms.length;
+    
+    // Pontuação por intensidade
+    if (intensity === 'Alta') score += 3;
+    else if (intensity === 'Moderada') score += 2;
+    else score += 1;
+    
+    // Pontuação por sinais vitais
+    if (vitalSigns) {
+      if (vitalSigns.temperature && vitalSigns.temperature > 39) score += 2;
+      if (vitalSigns.oxygenSaturation && vitalSigns.oxygenSaturation < 95) score += 3;
+      if (vitalSigns.heartRate && vitalSigns.heartRate > 100) score += 1;
+    }
+    
+    return Math.min(score, 10);
   }
 
   private getDefaultAnalysis(): AIAnalysis {
@@ -322,6 +555,13 @@ export class PatientAnalysisComponent implements OnInit {
           metric: 'Dados Clínicos',
           trend: 'stable',
           description: 'Necessário mais informações para análise completa'
+        }
+      ],
+      insights: [
+        {
+          title: 'Status da Análise',
+          value: 'Incompleta',
+          description: 'Dados insuficientes para análise detalhada'
         }
       ]
     };

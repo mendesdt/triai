@@ -115,6 +115,20 @@
   color: var(--primary);
 }
 
+.profile-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.profile-location .material-icons {
+  font-size: 18px;
+  color: var(--primary);
+}
+
 .analysis-card {
   background-color: white;
   border-radius: var(--radius);
@@ -145,6 +159,99 @@
 
 .card-content {
   padding: 24px;
+}
+
+/* Clinical Summary */
+.clinical-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.summary-value {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.symptoms-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptom-chip {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.intensity-badge, .priority-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.intensity-alta, .priority-alta {
+  background-color: #FFEBEE;
+  color: var(--error);
+}
+
+.intensity-moderada, .priority-média {
+  background-color: #FFF8E1;
+  color: var(--warning);
+}
+
+.intensity-leve, .priority-baixa {
+  background-color: #E8F5E9;
+  color: var(--success);
+}
+
+/* Vital Signs */
+.vital-signs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.vital-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #F8F9FA;
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary);
+}
+
+.vital-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.vital-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.vital-value.vital-abnormal {
+  color: var(--error);
 }
 
 /* Risk Assessment */
@@ -342,6 +449,62 @@
   line-height: 1.5;
 }
 
+/* AI Hypotheses */
+.ai-hypotheses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hypothesis-item {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: #F8F9FA;
+}
+
+.hypothesis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.hypothesis-illness {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.hypothesis-probability {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.hypothesis-probability.probability-provavel {
+  background-color: #FFEBEE;
+  color: var(--error);
+}
+
+.hypothesis-probability.probability-possivel {
+  background-color: #FFF8E1;
+  color: var(--warning);
+}
+
+.hypothesis-probability.probability-menos-provavel {
+  background-color: #E8F5E9;
+  color: var(--success);
+}
+
+.hypothesis-details {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* Patterns */
 .patterns-list {
   display: flex;
@@ -523,32 +686,6 @@
   line-height: 1.5;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 24px;
-  background-color: white;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(21, 101, 192, 0.2);
-  border-radius: 50%;
-  border-top-color: var(--primary);
-  animation: spin 1s linear infinite;
-  margin-bottom: 24px;
-}
-
-.loading-container p {
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
 /* AI Insights Section */
 .ai-insights {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -590,10 +727,71 @@
   margin-bottom: 8px;
 }
 
+.insight-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
 .insight-item p {
   font-size: 13px;
   opacity: 0.9;
   margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(21, 101, 192, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+.loading-container p {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* Helper function for vital signs */
+.hasVitalSigns(vitalSigns: any): boolean {
+  if (!vitalSigns || typeof vitalSigns !== 'object') {
+    return false;
+  }
+  
+  return !!(
+    vitalSigns.heartRate ||
+    vitalSigns.respiratoryRate ||
+    vitalSigns.temperature ||
+    vitalSigns.bloodPressureSystolic ||
+    vitalSigns.bloodPressureDiastolic ||
+    vitalSigns.oxygenSaturation
+  );
+}
+
+.getProbabilityClass(probability: string): string {
+  switch (probability.toLowerCase()) {
+    case 'provável':
+      return 'probability-provavel';
+    case 'possível':
+      return 'probability-possivel';
+    case 'menos provável':
+      return 'probability-menos-provavel';
+    default:
+      return 'probability-possivel';
+  }
 }
 
 @keyframes spin {
@@ -645,5 +843,18 @@
 
   .risk-factors {
     grid-template-columns: 1fr;
+  }
+
+  .vital-signs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .summary-label {
+    min-width: auto;
   }
 }

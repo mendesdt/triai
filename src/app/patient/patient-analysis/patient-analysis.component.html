@@ -15,143 +15,307 @@
     </div>
   </div>
 
-  <div class="patient-profile">
-    <div class="profile-card">
-      <div class="profile-avatar">
-        <span class="material-icons" style="font-size: 64px; color: var(--primary);">person</span>
-      </div>
-      <div class="profile-info">
-        <h2 class="profile-name">{{ patient?.name }}</h2>
-        <div class="profile-meta">
-          <div class="meta-item">
-            <span class="material-icons">badge</span>
-            <span>{{ patient?.cpf }}</span>
-          </div>
-          <div class="meta-item">
-            <span class="material-icons">cake</span>
-            <span>{{ patient?.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient?.birthDate || '') }} anos)</span>
-          </div>
+  <ng-container *ngIf="!loading && patient; else loadingTemplate">
+    <!-- Patient Profile -->
+    <div class="patient-profile">
+      <div class="profile-card">
+        <div class="profile-avatar">
+          <span class="material-icons" style="font-size: 64px; color: var(--primary);">person</span>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <ng-container *ngIf="!loading && analysis; else loadingTemplate">
-    <!-- Risk Assessment -->
-    <div class="analysis-card">
-      <div class="card-header">
-        <h3>
-          <span class="material-icons">assessment</span>
-          Avaliação de Risco
-        </h3>
-      </div>
-      <div class="card-content">
-        <div class="risk-overview">
-          <div class="risk-score">
-            <div class="score-circle" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
-              <span class="score-value">{{ analysis.riskScore }}</span>
-              <span class="score-max">/100</span>
+        <div class="profile-info">
+          <h2 class="profile-name">{{ patient.name }}</h2>
+          <div class="profile-meta">
+            <div class="meta-item">
+              <span class="material-icons">badge</span>
+              <span>{{ patient.cpf }}</span>
             </div>
-            <div class="risk-label">
-              <span class="risk-level" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
-                {{ getRiskLevelText(analysis.riskLevel) }}
-              </span>
-              <span class="risk-description">Baseado no histórico médico</span>
+            <div class="meta-item">
+              <span class="material-icons">cake</span>
+              <span>{{ patient.birthDate | date:'dd/MM/yyyy' }} ({{ getAge(patient.birthDate || '') }} anos)</span>
             </div>
+            <div class="meta-item" *ngIf="patient.motherName">
+              <span class="material-icons">family_restroom</span>
+              <span>Mãe: {{ patient.motherName }}</span>
+            </div>
+          </div>
+          <div class="profile-location" *ngIf="patient.city">
+            <span class="material-icons">location_on</span>
+            <span>{{ patient.city }}, {{ patient.state }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Alerts -->
+    <!-- AI Insights Section -->
+    <div class="ai-insights" *ngIf="analysis?.insights?.length">
+      <h3>
+        <span class="material-icons">psychology</span>
+        Insights da Inteligência Artificial
+      </h3>
+      <div class="insights-grid">
+        <div *ngFor="let insight of analysis.insights" class="insight-item">
+          <h4>{{ insight.title }}</h4>
+          <div class="insight-value">{{ insight.value }}</div>
+          <p>{{ insight.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clinical Summary -->
     <div class="analysis-card">
       <div class="card-header">
         <h3>
-          <span class="material-icons">warning</span>
-          Alertas Clínicos
+          <span class="material-icons">medical_information</span>
+          Resumo Clínico
         </h3>
       </div>
       <div class="card-content">
-        <div class="alerts-list">
-          <div *ngFor="let alert of analysis.alerts" class="alert-item" [ngClass]="'alert-' + alert.type">
-            <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
-            <div class="alert-content">
-              <h4>{{ alert.title }}</h4>
-              <p>{{ alert.description }}</p>
+        <div class="clinical-summary">
+          <div class="summary-item">
+            <span class="summary-label">Motivo da Consulta:</span>
+            <span class="summary-value">{{ patient.consultReason || 'Não informado' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Sintomas Principais:</span>
+            <div class="symptoms-display">
+              <span *ngFor="let symptom of patient.symptoms" class="symptom-chip">{{ symptom }}</span>
             </div>
+          </div>
+          <div class="summary-item" *ngIf="patient.otherSymptoms">
+            <span class="summary-label">Outros Sintomas:</span>
+            <span class="summary-value">{{ patient.otherSymptoms }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Duração:</span>
+            <span class="summary-value">{{ patient.duration }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Intensidade:</span>
+            <span class="summary-value intensity-badge" [ngClass]="'intensity-' + (patient.intensity?.toLowerCase() || 'low')">
+              {{ patient.intensity }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Prioridade:</span>
+            <span class="summary-value priority-badge" [ngClass]="'priority-' + (patient.priority?.toLowerCase() || 'low')">
+              {{ patient.priority }}
+            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Patterns -->
-    <div class="analysis-card">
+    <!-- Vital Signs -->
+    <div class="analysis-card" *ngIf="patient.vitalSigns && hasVitalSigns(patient.vitalSigns)">
       <div class="card-header">
         <h3>
-          <span class="material-icons">pattern</span>
-          Padrões Identificados
+          <span class="material-icons">monitor_heart</span>
+          Sinais Vitais
         </h3>
       </div>
       <div class="card-content">
-        <div class="patterns-list">
-          <div *ngFor="let pattern of analysis.patterns" class="pattern-item">
-            <div class="pattern-header">
-              <span class="pattern-name">{{ pattern.pattern }}</span>
-              <span class="pattern-frequency">{{ pattern.frequency }}</span>
-            </div>
-            <p class="pattern-recommendation">{{ pattern.recommendation }}</p>
+        <div class="vital-signs-grid">
+          <div *ngIf="patient.vitalSigns.temperature" class="vital-item">
+            <span class="vital-label">Temperatura:</span>
+            <span class="vital-value" [ngClass]="{'vital-abnormal': patient.vitalSigns.temperature > 37.5}">
+              {{ patient.vitalSigns.temperature }}°C
+            </span>
+          </div>
+          <div *ngIf="patient.vitalSigns.heartRate" class="vital-item">
+            <span class="vital-label">Freq. Cardíaca:</span>
+            <span class="vital-value" [ngClass]="{'vital-abnormal': patient.vitalSigns.heartRate > 100}">
+              {{ patient.vitalSigns.heartRate }} bpm
+            </span>
+          </div>
+          <div *ngIf="patient.vitalSigns.respiratoryRate" class="vital-item">
+            <span class="vital-label">Freq. Respiratória:</span>
+            <span class="vital-value" [ngClass]="{'vital-abnormal': patient.vitalSigns.respiratoryRate > 20}">
+              {{ patient.vitalSigns.respiratoryRate }} rpm
+            </span>
+          </div>
+          <div *ngIf="patient.vitalSigns.bloodPressureSystolic && patient.vitalSigns.bloodPressureDiastolic" class="vital-item">
+            <span class="vital-label">Pressão Arterial:</span>
+            <span class="vital-value" [ngClass]="{'vital-abnormal': patient.vitalSigns.bloodPressureSystolic > 140}">
+              {{ patient.vitalSigns.bloodPressureSystolic }}/{{ patient.vitalSigns.bloodPressureDiastolic }} mmHg
+            </span>
+          </div>
+          <div *ngIf="patient.vitalSigns.oxygenSaturation" class="vital-item">
+            <span class="vital-label">Sat. Oxigênio:</span>
+            <span class="vital-value" [ngClass]="{'vital-abnormal': patient.vitalSigns.oxygenSaturation < 95}">
+              {{ patient.vitalSigns.oxygenSaturation }}%
+            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Trends -->
-    <div class="analysis-card">
-      <div class="card-header">
-        <h3>
-          <span class="material-icons">trending_up</span>
-          Tendências de Saúde
-        </h3>
-      </div>
-      <div class="card-content">
-        <div class="trends-list">
-          <div *ngFor="let trend of analysis.trends" class="trend-item">
-            <div class="trend-icon" [ngClass]="getTrendClass(trend.trend)">
-              <span class="material-icons">{{ getTrendIcon(trend.trend) }}</span>
+    <ng-container *ngIf="analysis">
+      <!-- Risk Assessment -->
+      <div class="analysis-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">assessment</span>
+            Avaliação de Risco
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="risk-overview">
+            <div class="risk-score">
+              <div class="score-circle" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
+                <span class="score-value">{{ analysis.riskScore }}</span>
+                <span class="score-max">/100</span>
+              </div>
+              <div class="risk-label">
+                <span class="risk-level" [ngClass]="getRiskLevelClass(analysis.riskLevel)">
+                  {{ getRiskLevelText(analysis.riskLevel) }}
+                </span>
+                <span class="risk-description">Baseado no quadro clínico atual</span>
+              </div>
             </div>
-            <div class="trend-content">
-              <h4>{{ trend.metric }}</h4>
-              <p>{{ trend.description }}</p>
+          </div>
+          <div class="risk-details">
+            <h4>Fatores de Risco Identificados</h4>
+            <div class="risk-factors">
+              <div class="risk-factor" *ngIf="patient.symptoms && patient.symptoms.length > 3">
+                <span class="material-icons">warning</span>
+                <span>Múltiplos sintomas ({{ patient.symptoms.length }})</span>
+              </div>
+              <div class="risk-factor" *ngIf="patient.intensity === 'Alta'">
+                <span class="material-icons">priority_high</span>
+                <span>Intensidade alta dos sintomas</span>
+              </div>
+              <div class="risk-factor" *ngIf="getAge(patient.birthDate || '') > 65">
+                <span class="material-icons">elderly</span>
+                <span>Paciente idoso ({{ getAge(patient.birthDate || '') }} anos)</span>
+              </div>
+              <div class="risk-factor" *ngIf="patient.vitalSigns?.temperature && patient.vitalSigns.temperature > 38.5">
+                <span class="material-icons">thermostat</span>
+                <span>Febre alta ({{ patient.vitalSigns.temperature }}°C)</span>
+              </div>
+              <div class="risk-factor" *ngIf="patient.vitalSigns?.oxygenSaturation && patient.vitalSigns.oxygenSaturation < 95">
+                <span class="material-icons">air</span>
+                <span>Saturação baixa ({{ patient.vitalSigns.oxygenSaturation }}%)</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Recommendations -->
-    <div class="analysis-card">
-      <div class="card-header">
-        <h3>
-          <span class="material-icons">lightbulb</span>
-          Recomendações da IA
-        </h3>
-      </div>
-      <div class="card-content">
-        <div class="recommendations-list">
-          <div *ngFor="let rec of analysis.recommendations" class="recommendation-item">
-            <div class="recommendation-priority" [ngClass]="getPriorityClass(rec.priority)">
-              <span class="material-icons">
-                {{ rec.priority === 'high' ? 'priority_high' : rec.priority === 'medium' ? 'warning' : 'info' }}
-              </span>
-            </div>
-            <div class="recommendation-content">
-              <h4>{{ rec.category }}</h4>
-              <p>{{ rec.action }}</p>
+      <!-- Alerts -->
+      <div class="analysis-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">warning</span>
+            Alertas Clínicos
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="alerts-list">
+            <div *ngFor="let alert of analysis.alerts" class="alert-item" [ngClass]="'alert-' + alert.type">
+              <div class="alert-icon">
+                <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
+              </div>
+              <div class="alert-content">
+                <h4>{{ alert.title }}</h4>
+                <p>{{ alert.description }}</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- AI Hypotheses -->
+      <div class="analysis-card" *ngIf="patient.aiHypotheses?.length">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">psychology</span>
+            Hipóteses Diagnósticas da IA
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="ai-hypotheses-list">
+            <div *ngFor="let hypothesis of patient.aiHypotheses" class="hypothesis-item">
+              <div class="hypothesis-header">
+                <span class="hypothesis-illness">{{ hypothesis.illness }}</span>
+                <span class="hypothesis-probability" [ngClass]="getProbabilityClass(hypothesis.probability)">
+                  {{ hypothesis.probability }}
+                </span>
+              </div>
+              <p class="hypothesis-details">{{ hypothesis.details }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patterns -->
+      <div class="analysis-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">pattern</span>
+            Padrões Epidemiológicos
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="patterns-list">
+            <div *ngFor="let pattern of analysis.patterns" class="pattern-item">
+              <div class="pattern-header">
+                <span class="pattern-name">{{ pattern.pattern }}</span>
+                <span class="pattern-frequency">{{ pattern.frequency }}</span>
+              </div>
+              <p class="pattern-recommendation">{{ pattern.recommendation }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trends -->
+      <div class="analysis-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">trending_up</span>
+            Tendências Clínicas
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="trends-list">
+            <div *ngFor="let trend of analysis.trends" class="trend-item">
+              <div class="trend-icon" [ngClass]="getTrendClass(trend.trend)">
+                <span class="material-icons">{{ getTrendIcon(trend.trend) }}</span>
+              </div>
+              <div class="trend-content">
+                <h4>{{ trend.metric }}</h4>
+                <p>{{ trend.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="analysis-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons">lightbulb</span>
+            Recomendações Clínicas
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="recommendations-list">
+            <div *ngFor="let rec of analysis.recommendations" class="recommendation-item">
+              <div class="recommendation-priority" [ngClass]="getPriorityClass(rec.priority)">
+                <span class="material-icons">
+                  {{ rec.priority === 'high' ? 'priority_high' : rec.priority === 'medium' ? 'warning' : 'info' }}
+                </span>
+              </div>
+              <div class="recommendation-content">
+                <h4>{{ rec.category }}</h4>
+                <p>{{ rec.action }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
   </ng-container>
 
   <ng-template #loadingTemplate>
