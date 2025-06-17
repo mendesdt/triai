@@ -649,6 +649,34 @@ export class PatientAnalysisComponent implements OnInit {
     }
   }
 
+  public hasVitalSigns(vitalSigns: any): boolean {
+    if (!vitalSigns || typeof vitalSigns !== 'object') {
+      return false;
+    }
+    
+    return !!(
+      vitalSigns.heartRate ||
+      vitalSigns.respiratoryRate ||
+      vitalSigns.temperature ||
+      vitalSigns.bloodPressureSystolic ||
+      vitalSigns.bloodPressureDiastolic ||
+      vitalSigns.oxygenSaturation
+    );
+  }
+
+  public getProbabilityClass(probability: string): string {
+    switch (probability.toLowerCase()) {
+      case 'provável':
+        return 'probability-provavel';
+      case 'possível':
+        return 'probability-possivel';
+      case 'menos provável':
+        return 'probability-menos-provavel';
+      default:
+        return 'probability-possivel';
+    }
+  }
+
   public getAge(birthDate: string): number {
     if (!birthDate) return 0;
     

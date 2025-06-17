@@ -765,35 +765,6 @@
   font-size: 16px;
 }
 
-/* Helper function for vital signs */
-.hasVitalSigns(vitalSigns: any): boolean {
-  if (!vitalSigns || typeof vitalSigns !== 'object') {
-    return false;
-  }
-  
-  return !!(
-    vitalSigns.heartRate ||
-    vitalSigns.respiratoryRate ||
-    vitalSigns.temperature ||
-    vitalSigns.bloodPressureSystolic ||
-    vitalSigns.bloodPressureDiastolic ||
-    vitalSigns.oxygenSaturation
-  );
-}
-
-.getProbabilityClass(probability: string): string {
-  switch (probability.toLowerCase()) {
-    case 'provável':
-      return 'probability-provavel';
-    case 'possível':
-      return 'probability-possivel';
-    case 'menos provável':
-      return 'probability-menos-provavel';
-    default:
-      return 'probability-possivel';
-  }
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
