@@ -188,11 +188,11 @@
                 <span class="material-icons">elderly</span>
                 <span>Paciente idoso ({{ getAge(patient.birthDate || '') }} anos)</span>
               </div>
-              <div class="risk-factor" *ngIf="patient.vitalSigns?.temperature != null && patient.vitalSigns.temperature > 38.5">
+              <div class="risk-factor" *ngIf="patient.vitalSigns?.temperature != null && patient.vitalSigns?.temperature > 38.5">
                 <span class="material-icons">thermostat</span>
                 <span>Febre alta ({{ patient.vitalSigns?.temperature }}°C)</span>
               </div>
-              <div class="risk-factor" *ngIf="patient.vitalSigns?.oxygenSaturation != null && patient.vitalSigns.oxygenSaturation < 95">
+              <div class="risk-factor" *ngIf="patient.vitalSigns?.oxygenSaturation != null && patient.vitalSigns?.oxygenSaturation < 95">
                 <span class="material-icons">air</span>
                 <span>Saturação baixa ({{ patient.vitalSigns?.oxygenSaturation }}%)</span>
               </div>
