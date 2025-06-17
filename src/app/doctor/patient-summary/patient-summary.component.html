@@ -130,7 +130,7 @@
       </div>
 
       <!-- AI Hypotheses Section -->
-      <div class="summary-card" *ngIf="patient?.aiHypotheses?.length">
+      <div class="summary-card ai-hypotheses-card" *ngIf="patient?.aiHypotheses?.length">
         <div class="card-title">
           <span class="material-icons">psychology</span>
           Hipóteses Clínicas da IA
@@ -144,7 +144,35 @@
                   {{ hypothesis.probability }}
                 </span>
               </div>
-              <p class="hypothesis-details">{{ hypothesis.details }}</p>
+              
+              <!-- Diagnóstico específico -->
+              <div class="hypothesis-diagnosis" *ngIf="hypothesis.diagnosis">
+                <h5>Diagnóstico:</h5>
+                <p>{{ hypothesis.diagnosis }}</p>
+              </div>
+              
+              <!-- Detalhes da hipótese -->
+              <div class="hypothesis-details">
+                <h5>Detalhes:</h5>
+                <p>{{ hypothesis.details }}</p>
+              </div>
+              
+              <!-- Medicamentos indicados pela IA -->
+              <div class="hypothesis-medications" *ngIf="hypothesis.medications && hypothesis.medications.length > 0">
+                <h5>Medicamentos Indicados:</h5>
+                <div class="medications-grid">
+                  <div *ngFor="let medication of hypothesis.medications" class="medication-chip">
+                    <span class="material-icons">medication</span>
+                    {{ medication }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Plano de tratamento -->
+              <div class="hypothesis-treatment" *ngIf="hypothesis.treatmentPlan">
+                <h5>Plano de Tratamento:</h5>
+                <p>{{ hypothesis.treatmentPlan }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -219,7 +247,7 @@
     </div>
   </ng-container>
 
-  <ng-template #loadingTemplate>
+  <ng-template #loadingTemplate">
     <div *ngIf="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Carregando informações do paciente...</p>

@@ -312,37 +312,44 @@
 }
 
 /* AI Hypotheses Styles */
+.ai-hypotheses-card {
+  grid-column: 1 / -1; /* Span full width */
+}
+
 .ai-hypotheses-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .hypothesis-item {
-  padding: 16px;
+  padding: 20px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   background-color: #F8F9FA;
+  border-left: 4px solid var(--primary);
 }
 
 .hypothesis-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .hypothesis-illness {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .hypothesis-probability {
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 6px 12px;
+  border-radius: 16px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .hypothesis-probability.probability-provavel {
@@ -360,11 +367,90 @@
   color: var(--success);
 }
 
-.hypothesis-details {
-  color: var(--text-secondary);
+.hypothesis-diagnosis,
+.hypothesis-details,
+.hypothesis-medications,
+.hypothesis-treatment {
+  margin-bottom: 16px;
+}
+
+.hypothesis-diagnosis:last-child,
+.hypothesis-details:last-child,
+.hypothesis-medications:last-child,
+.hypothesis-treatment:last-child {
+  margin-bottom: 0;
+}
+
+.hypothesis-diagnosis h5,
+.hypothesis-details h5,
+.hypothesis-medications h5,
+.hypothesis-treatment h5 {
   font-size: 14px;
-  line-height: 1.5;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hypothesis-diagnosis h5::before {
+  content: "🩺";
+  font-size: 16px;
+}
+
+.hypothesis-details h5::before {
+  content: "📋";
+  font-size: 16px;
+}
+
+.hypothesis-medications h5::before {
+  content: "💊";
+  font-size: 16px;
+}
+
+.hypothesis-treatment h5::before {
+  content: "🏥";
+  font-size: 16px;
+}
+
+.hypothesis-diagnosis p,
+.hypothesis-details p,
+.hypothesis-treatment p {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
   margin: 0;
+}
+
+.medications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.medication-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: white;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.medication-chip:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.medication-chip .material-icons {
+  font-size: 16px;
 }
 
 .alerts-card .card-title {
@@ -523,6 +609,10 @@
   .summary-grid {
     grid-template-columns: 1fr;
   }
+  
+  .ai-hypotheses-card {
+    grid-column: 1;
+  }
 }
 
 @media (max-width: 768px) {
@@ -556,6 +646,16 @@
   .patient-location {
     flex-direction: column;
     align-items: center;
+  }
+  
+  .medications-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hypothesis-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
