@@ -89,7 +89,7 @@ export class PatientSummaryComponent implements OnInit {
         illness: 'COVID-19',
         diagnosis: 'Infecção viral por SARS-CoV-2 com comprometimento respiratório leve a moderado',
         details: 'Quadro clínico compatível com COVID-19, apresentando febre persistente e tosse seca. Paciente em fase aguda da infecção.',
-        medications: [
+        indicatedMedications: [
           'Paracetamol 750mg - 8/8h',
           'Dipirona 500mg - 6/6h se febre',
           'Vitamina D 2000UI - 1x/dia',
@@ -107,7 +107,7 @@ export class PatientSummaryComponent implements OnInit {
         illness: 'Influenza A (H1N1)',
         diagnosis: 'Síndrome gripal por vírus Influenza A com manifestações sistêmicas',
         details: 'Quadro típico de influenza com início súbito, febre alta, mialgia e cefaleia. Evolução esperada de 5-7 dias.',
-        medications: [
+        indicatedMedications: [
           'Oseltamivir 75mg - 12/12h por 5 dias',
           'Paracetamol 750mg - 6/6h',
           'Ibuprofeno 400mg - 8/8h',
@@ -124,7 +124,7 @@ export class PatientSummaryComponent implements OnInit {
         illness: 'Pneumonia Bacteriana',
         diagnosis: 'Pneumonia adquirida na comunidade por provável agente bacteriano',
         details: 'Suspeita de pneumonia bacteriana devido à idade avançada e intensidade dos sintomas. Necessária investigação radiológica.',
-        medications: [
+        indicatedMedications: [
           'Amoxicilina + Clavulanato 875mg - 12/12h por 7 dias',
           'Azitromicina 500mg - 1x/dia por 3 dias',
           'Prednisolona 20mg - 1x/dia por 5 dias',
@@ -141,7 +141,7 @@ export class PatientSummaryComponent implements OnInit {
         illness: 'Síndrome Gripal Viral',
         diagnosis: 'Infecção viral das vias aéreas superiores com manifestações sistêmicas',
         details: 'Quadro viral autolimitado com sintomas típicos de síndrome gripal. Evolução benigna esperada.',
-        medications: [
+        indicatedMedications: [
           'Paracetamol 750mg - 6/6h',
           'Dipirona 500mg - se febre',
           'Soro fisiológico nasal - 3x/dia',

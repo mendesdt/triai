@@ -389,33 +389,13 @@
 .hypothesis-details h5,
 .hypothesis-medications h5,
 .hypothesis-treatment h5 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--primary);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.hypothesis-diagnosis h5::before {
-  content: "🩺";
-  font-size: 16px;
-}
-
-.hypothesis-details h5::before {
-  content: "📋";
-  font-size: 16px;
-}
-
-.hypothesis-medications h5::before {
-  content: "💊";
-  font-size: 16px;
-}
-
-.hypothesis-treatment h5::before {
-  content: "🏥";
-  font-size: 16px;
 }
 
 .hypothesis-diagnosis p,
@@ -429,20 +409,20 @@
 
 .medications-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
 }
 
 .medication-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 6px 8px;
   background-color: white;
   border: 1px solid var(--primary);
   border-radius: var(--radius);
   color: var(--primary);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -454,7 +434,7 @@
 }
 
 .medication-chip .material-icons {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .alerts-card .card-title {
