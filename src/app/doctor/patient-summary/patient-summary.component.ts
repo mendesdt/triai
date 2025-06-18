@@ -334,8 +334,8 @@ Medicamentos em uso: ${this.patient.medications || 'Nenhum medicamento relatado'
         if (h.diagnosis) {
           notes += `\n   Diagnóstico: ${h.diagnosis}`;
         }
-        if (h.medications && h.medications.length > 0) {
-          notes += `\n   Medicamentos: ${h.medications.join(', ')}`;
+        if (h.indicatedMedications && h.indicatedMedications.length > 0) {
+          notes += `\n   Medicamentos: ${h.indicatedMedications.join(', ')}`;
         }
         if (h.treatmentPlan) {
           notes += `\n   Plano: ${h.treatmentPlan}`;
