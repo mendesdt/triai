@@ -158,7 +158,7 @@
               </div>
               
               <!-- Medicamentos indicados pela IA -->
-              <div class="hypothesis-medications" *ngIf="hypothesis.medications && hypothesis.medications.length > 0">
+              <div class="hypothesis-medications" *ngIf="hypothesis.indicatedMedications && hypothesis.indicatedMedications.length > 0">
                 <h5>Medicamentos Indicados:</h5>
                 <div class="medications-grid">
                   <div *ngFor="let medication of hypothesis.indicatedMedications" class="medication-chip">
