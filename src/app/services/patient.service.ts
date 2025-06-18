@@ -169,7 +169,7 @@ export class PatientService {
 
     return from(getDocs(q)).pipe(
       map(querySnapshot => {
-        let diagnosis = null;
+        let diagnosis: any | null = null;
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           if (data['patientId'] === patientId && !diagnosis) {
