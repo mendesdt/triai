@@ -22,6 +22,7 @@ import { Patient, PatientHistory, ClinicalHypothesis, ClinicalAlert, AIHypothesi
 export class PatientService {
   private triagesCollection = 'triages';
   private completedTriagesCollection = 'completed-triages';
+  private diagnosesCollection = 'patient-diagnoses';
   private aiAnalysisCollection = 'ai-analysis';
   private externalApiUrl = 'https://us-central1-triai-dev-462420.cloudfunctions.net/triageAnalysis';
 
@@ -135,6 +136,53 @@ export class PatientService {
     return from(addDoc(collection(db, this.aiAnalysisCollection), analysisDoc)).pipe(
       catchError(error => {
         console.error('Erro ao salvar análise da IA:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // Save patient diagnosis
+  saveDiagnosis(patientId: string, diagnosisData: any): Observable<any> {
+    const diagnosisDoc = {
+      patientId,
+      diagnosis: diagnosisData.diagnosis,
+      prescriptions: diagnosisData.prescriptions,
+      observations: diagnosisData.observations,
+      doctorName: diagnosisData.doctorName,
+      createdAt: Timestamp.fromDate(new Date())
+    };
+
+    return from(addDoc(collection(db, this.diagnosesCollection), diagnosisDoc)).pipe(
+      catchError(error => {
+        console.error('Erro ao salvar diagnóstico:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Get patient diagnosis
+  getPatientDiagnosis(patientId: string): Observable<any> {
+    const q = query(
+      collection(db, this.diagnosesCollection),
+      orderBy('createdAt', 'desc')
+    );
+
+    return from(getDocs(q)).pipe(
+      map(querySnapshot => {
+        let diagnosis = null;
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data['patientId'] === patientId && !diagnosis) {
+            diagnosis = {
+              id: doc.id,
+              ...data
+            };
+          }
+        });
+        return diagnosis;
+      }),
+      catchError(error => {
+        console.error('Erro ao buscar diagnóstico:', error);
         return of(null);
       })
     );
@@ -416,6 +464,44 @@ export class PatientService {
     );
   }
 
+  // Completar atendimento com diagnóstico
+  completeAttendanceWithDiagnosis(patientId: string, diagnosisData: any): Observable<boolean> {
+    return from(getDoc(doc(db, this.triagesCollection, patientId))).pipe(
+      switchMap(async (docSnap) => {
+        if (docSnap.exists()) {
+          const patientData = docSnap.data();
+          
+          // Save diagnosis first
+          await this.saveDiagnosis(patientId, diagnosisData).toPromise();
+          
+          // Adicionar à collection de triagens concluídas
+          const completedData = {
+            ...patientData,
+            completedTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            diagnosis: diagnosisData.diagnosis,
+            prescriptions: diagnosisData.prescriptions,
+            observations: diagnosisData.observations,
+            doctorName: diagnosisData.doctorName,
+            triageStatus: 'completed',
+            completedAt: Timestamp.fromDate(new Date())
+          };
+          
+          await addDoc(collection(db, this.completedTriagesCollection), completedData);
+          
+          // Remover da collection de triagens ativas
+          await deleteDoc(doc(db, this.triagesCollection, patientId));
+          
+          return true;
+        }
+        return false;
+      }),
+      catchError(error => {
+        console.error('Erro ao completar atendimento:', error);
+        return of(false);
+      })
+    );
+  }
+
   // Remover atendimento
   removeAttendance(patientId: string): Observable<boolean> {
     return this.deleteTriage(patientId);
@@ -429,35 +515,45 @@ export class PatientService {
     );
     
     return from(getDocs(q)).pipe(
-      map(querySnapshot => {
+      switchMap(querySnapshot => {
         const patients: Patient[] = [];
+        const patientPromises: Promise<Patient>[] = [];
+        
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          patients.push({
-            id: doc.id,
-            name: data['name'] || '',
-            cpf: data['cpf'] || '',
-            birthDate: data['birthDate'] || '',
-            motherName: data['motherName'] || '',
-            consultReason: data['consultReason'] || '',
-            symptoms: data['symptoms'] || [],
-            otherSymptoms: data['otherSymptoms'] || '',
-            duration: data['duration'] || '',
-            intensity: data['intensity'] || 'Leve',
-            medications: data['medications'] || '',
-            allergies: data['allergies'] || '',
-            vitalSigns: data['vitalSigns'] || {},
-            priority: data['priority'] || 'Baixa',
-            arrivalTime: data['arrivalTime'] || '',
-            completedTime: data['completedTime'] || '',
-            diagnosis: data['diagnosis'] || '',
-            triageStatus: data['triageStatus'] || 'completed',
-            createdAt: data['createdAt'],
-            updatedAt: data['updatedAt'],
-            completedAt: data['completedAt']
-          } as Patient);
+          const patientPromise = this.getPatientDiagnosis(doc.id).toPromise().then(diagnosis => {
+            return {
+              id: doc.id,
+              name: data['name'] || '',
+              cpf: data['cpf'] || '',
+              birthDate: data['birthDate'] || '',
+              motherName: data['motherName'] || '',
+              consultReason: data['consultReason'] || '',
+              symptoms: data['symptoms'] || [],
+              otherSymptoms: data['otherSymptoms'] || '',
+              duration: data['duration'] || '',
+              intensity: data['intensity'] || 'Leve',
+              medications: data['medications'] || '',
+              allergies: data['allergies'] || '',
+              vitalSigns: data['vitalSigns'] || {},
+              priority: data['priority'] || 'Baixa',
+              arrivalTime: data['arrivalTime'] || '',
+              completedTime: data['completedTime'] || '',
+              diagnosis: diagnosis?.diagnosis || data['diagnosis'] || 'Síndrome gripal',
+              prescriptions: diagnosis?.prescriptions || data['prescriptions'] || '',
+              observations: diagnosis?.observations || data['observations'] || '',
+              doctorName: diagnosis?.doctorName || data['doctorName'] || '',
+              triageStatus: data['triageStatus'] || 'completed',
+              createdAt: data['createdAt'],
+              updatedAt: data['updatedAt'],
+              completedAt: data['completedAt']
+            } as Patient;
+          });
+          
+          patientPromises.push(patientPromise);
         });
-        return patients;
+        
+        return from(Promise.all(patientPromises));
       }),
       catchError(error => {
         console.error('Erro ao buscar pacientes concluídos:', error);

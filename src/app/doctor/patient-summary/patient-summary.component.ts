@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Patient, ClinicalHypothesis, ClinicalAlert } from '../../models/patient.model';
 import { PatientService } from '../../services/patient.service';
@@ -10,7 +11,7 @@ import { PatientService } from '../../services/patient.service';
   templateUrl: './patient-summary.component.html',
   styleUrls: ['./patient-summary.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, ReactiveFormsModule]
 })
 export class PatientSummaryComponent implements OnInit {
   patientId!: string;
@@ -23,16 +24,33 @@ export class PatientSummaryComponent implements OnInit {
   copied = false;
   hasPatientHistory = false;
   
+  // Diagnosis modal properties
+  showDiagnosisModal = false;
+  diagnosisForm!: FormGroup;
+  diagnosisSubmitted = false;
+  diagnosisLoading = false;
+  
   constructor(
     private route: ActivatedRoute,
     public router: Router,
-    private patientService: PatientService
+    private patientService: PatientService,
+    private formBuilder: FormBuilder
   ) {}
 
   ngOnInit(): void {
+    this.initializeDiagnosisForm();
+    
     this.route.params.subscribe(params => {
       this.patientId = params['id'];
       this.loadPatientData();
+    });
+  }
+
+  initializeDiagnosisForm(): void {
+    this.diagnosisForm = this.formBuilder.group({
+      diagnosis: ['', Validators.required],
+      prescriptions: [''],
+      observations: ['']
     });
   }
 
@@ -255,24 +273,64 @@ export class PatientSummaryComponent implements OnInit {
     }
   }
 
+  openDiagnosisModal(): void {
+    // Pre-populate with AI suggestions if available
+    if (this.patient?.aiHypotheses && this.patient.aiHypotheses.length > 0) {
+      const mainHypothesis = this.patient.aiHypotheses[0];
+      this.diagnosisForm.patchValue({
+        diagnosis: mainHypothesis.diagnosis || mainHypothesis.illness,
+        prescriptions: mainHypothesis.indicatedMedications?.join('\n') || '',
+        observations: mainHypothesis.treatmentPlan || ''
+      });
+    }
+    
+    this.showDiagnosisModal = true;
+  }
+
+  closeDiagnosisModal(): void {
+    this.showDiagnosisModal = false;
+    this.diagnosisSubmitted = false;
+    this.diagnosisForm.reset();
+  }
+
   completeAttendance(): void {
-    if (confirm('Tem certeza que deseja completar este atendimento?')) {
-      this.patientService.completeAttendance(this.patientId)
-        .subscribe({
-          next: (success) => {
-            if (success) {
-              alert('Atendimento completado com sucesso!');
-              this.router.navigate(['/patients']);
-            } else {
-              alert('Erro ao completar atendimento');
-            }
-          },
-          error: (error) => {
-            console.error('Error completing attendance:', error);
+    this.diagnosisSubmitted = true;
+    
+    if (this.diagnosisForm.invalid) {
+      return;
+    }
+    
+    this.diagnosisLoading = true;
+    
+    const diagnosisData = {
+      patientId: this.patientId,
+      diagnosis: this.diagnosisForm.get('diagnosis')?.value,
+      prescriptions: this.diagnosisForm.get('prescriptions')?.value,
+      observations: this.diagnosisForm.get('observations')?.value,
+      completedAt: new Date(),
+      doctorName: 'Dr. Ana Souza' // This should come from auth service
+    };
+    
+    // Save diagnosis and complete attendance
+    this.patientService.completeAttendanceWithDiagnosis(this.patientId, diagnosisData)
+      .subscribe({
+        next: (success) => {
+          if (success) {
+            this.diagnosisLoading = false;
+            this.closeDiagnosisModal();
+            alert('Atendimento completado com sucesso!');
+            this.router.navigate(['/patients']);
+          } else {
+            this.diagnosisLoading = false;
             alert('Erro ao completar atendimento');
           }
-        });
-    }
+        },
+        error: (error) => {
+          console.error('Error completing attendance:', error);
+          this.diagnosisLoading = false;
+          alert('Erro ao completar atendimento');
+        }
+      });
   }
 
   removeAttendance(): void {
