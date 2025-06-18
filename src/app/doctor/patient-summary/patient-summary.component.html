@@ -335,7 +335,7 @@
             Sugestões da IA
           </h5>
           <div class="suggestions-list">
-            <div *ngFor="let hypothesis of patient?.aiHypotheses.slice(0, 2)" class="suggestion-item">
+            <div *ngFor="let hypothesis of patient?.aiHypotheses?.slice(0, 2)" class="suggestion-item">
               <div class="suggestion-header">
                 <strong>{{ hypothesis.illness }}</strong>
                 <span class="probability-tag">{{ hypothesis.probability }}</span>
@@ -344,7 +344,7 @@
               <div *ngIf="hypothesis.indicatedMedications?.length" class="suggested-meds">
                 <small><strong>Medicamentos sugeridos:</strong></small>
                 <div class="meds-chips">
-                  <span *ngFor="let med of hypothesis.indicatedMedications.slice(0, 3)" class="med-chip">
+                  <span *ngFor="let med of hypothesis.indicatedMedications?.slice(0, 3)" class="med-chip">
                     {{ med }}
                   </span>
                 </div>
