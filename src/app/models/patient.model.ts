@@ -43,7 +43,7 @@ export interface AIHypothesis {
   probability: string;
   illness: string;
   details: string;
-  medications?: string[]; // Medicamentos específicos para esta hipótese
+  indicatedMedications?: string[]; // Medicamentos específicos para esta hipótese
   diagnosis?: string; // Diagnóstico específico para esta hipótese
   treatmentPlan?: string; // Plano de tratamento específico
 }
