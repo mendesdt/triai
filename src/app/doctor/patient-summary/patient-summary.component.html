@@ -161,7 +161,7 @@
               <div class="hypothesis-medications" *ngIf="hypothesis.medications && hypothesis.medications.length > 0">
                 <h5>Medicamentos Indicados:</h5>
                 <div class="medications-grid">
-                  <div *ngFor="let medication of hypothesis.medications" class="medication-chip">
+                  <div *ngFor="let medication of hypothesis.indicatedMedications" class="medication-chip">
                     <span class="material-icons">medication</span>
                     {{ medication }}
                   </div>
