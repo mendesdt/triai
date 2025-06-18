@@ -1,4 +1,30 @@
-<ng-container *ngIf="!loading && !notFound; else loadingTemplate">
+<div class="summary-container">
+  <div class="summary-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+      Voltar
+    </button>
+    <div class="action-buttons">
+      <button 
+        class="btn-action btn-history" 
+        [disabled]="!hasPatientHistory"
+        [title]="!hasPatientHistory ? 'Este paciente não possui histórico de outros atendimentos registrados' : 'Ver histórico do paciente'"
+        (click)="viewPatientHistory()">
+        <span class="material-icons">history</span>
+        Histórico do Paciente
+      </button>
+      <button class="btn-action btn-complete" (click)="completeAttendance()">
+        <span class="material-icons">check_circle</span>
+        Completar Atendimento
+      </button>
+      <button class="btn-action btn-remove" (click)="removeAttendance()">
+        <span class="material-icons">cancel</span>
+        Remover Atendimento
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading && !notFound; else loadingTemplate">
     <div class="patient-header">
       <div class="patient-info">
         <div class="patient-avatar">
@@ -239,3 +265,4 @@
       </button>
     </div>
   </ng-template>
+</div>
