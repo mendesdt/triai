@@ -128,7 +128,10 @@
           </ng-template>
         </div>
       </div>
+    </div>
 
+    <!-- AI Sections Side by Side -->
+    <div class="ai-sections-grid">
       <!-- AI Hypotheses Section -->
       <div class="summary-card ai-hypotheses-card" *ngIf="patient?.aiHypotheses?.length">
         <div class="card-title">
@@ -195,8 +198,10 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Fallback for when no AI data is available -->
+    <!-- Fallback sections when no AI data is available -->
+    <div class="summary-grid" *ngIf="!patient?.aiHypotheses?.length || !patient?.aiAlerts?.length">
       <div class="summary-card" *ngIf="!patient?.aiHypotheses?.length">
         <div class="card-title">
           <span class="material-icons">psychology</span>

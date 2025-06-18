@@ -193,6 +193,14 @@
   margin-bottom: 24px;
 }
 
+/* New AI sections grid for side-by-side layout */
+.ai-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
 .summary-card {
   background-color: white;
   border-radius: var(--radius);
@@ -312,10 +320,6 @@
 }
 
 /* AI Hypotheses Styles */
-.ai-hypotheses-card {
-  grid-column: 1 / -1; /* Span full width */
-}
-
 .ai-hypotheses-list {
   display: flex;
   flex-direction: column;
@@ -610,8 +614,8 @@
     grid-template-columns: 1fr;
   }
   
-  .ai-hypotheses-card {
-    grid-column: 1;
+  .ai-sections-grid {
+    grid-template-columns: 1fr;
   }
 }
 
