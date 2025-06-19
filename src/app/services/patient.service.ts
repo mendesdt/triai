@@ -312,63 +312,60 @@ export class PatientService {
 
   // Registrar nova triagem
   registerTriage(triageData: any): Observable<Patient> {
-    const now = new Date();
-    
-    const newTriage = {
-      name: triageData.name || '',
-      cpf: triageData.cpf || '',
-      birthDate: triageData.birthDate || '',
-      motherName: triageData.motherName || '',
-      consultReason: triageData.consultReason || '',
-      symptoms: triageData.symptoms || [],
-      otherSymptoms: triageData.otherSymptoms || '',
-      duration: triageData.duration || '',
-      intensity: triageData.intensity || 'Leve',
-      medications: triageData.medications || '',
-      allergies: triageData.allergies || '',
-      vitalSigns: triageData.vitalSigns || {},
-      priority: triageData.priority || 'Baixa',
-      arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      triageStatus: 'completed',
-      createdAt: Timestamp.fromDate(now),
-      updatedAt: Timestamp.fromDate(now)
-    };
+  const now = new Date();
 
-    console.log('Registrando triagem:', newTriage);
+  const newTriage = {
+    name: triageData.name || '',
+    cpf: triageData.cpf || '',
+    birthDate: triageData.birthDate || '',
+    motherName: triageData.motherName || '',
+    consultReason: triageData.consultReason || '',
+    symptoms: triageData.symptoms || [],
+    otherSymptoms: triageData.otherSymptoms || '',
+    duration: triageData.duration || '',
+    intensity: triageData.intensity || 'Leve',
+    medications: triageData.medications || '',
+    allergies: triageData.allergies || '',
+    vitalSigns: triageData.vitalSigns || {},
+    priority: triageData.priority || 'Baixa',
+    arrivalTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    triageStatus: 'completed',
+    createdAt: Timestamp.fromDate(now),
+    updatedAt: Timestamp.fromDate(now)
+  };
 
-    return from(addDoc(collection(db, this.triagesCollection), newTriage)).pipe(
-      switchMap(docRef => {
-        console.log('Triagem registrada com ID:', docRef.id);
-        
-        const patientWithId = {
-          id: docRef.id,
-          ...newTriage
-        } as Patient;
+  console.log('Registrando triagem:', newTriage);
 
-        // Call external API for AI analysis
-        return this.callExternalAPI(patientWithId).pipe(
-          switchMap(analysisResult => {
-            if (analysisResult) {
-              // Save AI analysis to Firebase
-              return this.saveAIAnalysis(docRef.id, analysisResult).pipe(
-                map(() => {
-                  console.log('Análise da IA salva com sucesso');
-                  return patientWithId;
-                })
-              );
-            } else {
-              console.log('API externa falhou, mas triagem foi salva');
-              return of(patientWithId);
-            }
-          })
-        );
-      }),
-      catchError(error => {
-        console.error('Erro ao registrar triagem:', error);
-        throw error;
-      })
-    );
-  }
+  return from(addDoc(collection(db, this.triagesCollection), newTriage)).pipe(
+    map(docRef => {
+      const patientWithId = {
+        id: docRef.id,
+        ...newTriage
+      } as Patient;
+
+      console.log('Triagem registrada com ID:', docRef.id);
+
+      // Chamada assíncrona paralela (não bloqueia o retorno)
+      this.callExternalAPI(patientWithId).pipe(
+        switchMap(analysisResult => {
+          if (analysisResult) {
+            return this.saveAIAnalysis(docRef.id, analysisResult);
+          }
+          return of(null);
+        })
+      ).subscribe({
+        next: () => console.log('Análise da IA salva com sucesso'),
+        error: (err) => console.error('Erro na chamada da API externa ou salvamento:', err)
+      });
+
+      return patientWithId; // retorno imediato
+    }),
+    catchError(error => {
+      console.error('Erro ao registrar triagem:', error);
+      throw error;
+    })
+  );
+}
 
   // Atualizar triagem
   updateTriage(id: string, triageData: any): Observable<Patient> {
